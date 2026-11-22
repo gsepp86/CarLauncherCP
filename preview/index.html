@@ -52,26 +52,28 @@
   }
 
   /* smoke haze drifting behind and below the clock */
-  .head-zone { position: relative; padding-bottom: 38px; }
+  .head-zone { position: relative; padding-bottom: 26px; }
   .head-zone header { position: relative; z-index: 1; }
-  .smoke { position: absolute; left: -22px; right: -22px; top: -8px; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .smoke { position: absolute; left: -22px; right: -22px; top: -10px; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
   .smoke i {
-    position: absolute; bottom: -40px; width: 180px; height: 250px; border-radius: 50%; opacity: 0;
-    background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 72%, #fff) 0%, color-mix(in srgb, var(--accent) 44%, transparent) 42%, transparent 70%);
-    filter: blur(6px);
-    animation: drift 13s linear infinite;
+    position: absolute; bottom: -70px; width: 250px; height: 340px; border-radius: 50%; opacity: 0;
+    background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 90%, #fff) 0%, color-mix(in srgb, var(--accent) 62%, transparent) 44%, transparent 74%);
+    filter: blur(7px);
+    animation: drift 11s linear infinite;
   }
-  .smoke i:nth-child(1) { left: -2%; animation-delay: -1.5s; }
-  .smoke i:nth-child(2) { left: 12%; animation-delay: -5.5s; animation-duration: 15s; }
-  .smoke i:nth-child(3) { left: 28%; animation-delay: -9s; animation-duration: 17s; }
-  .smoke i:nth-child(4) { left: 44%; animation-delay: -3.5s; animation-duration: 14s; }
-  .smoke i:nth-child(5) { left: 62%; animation-delay: -8s; animation-duration: 16s; }
-  .smoke i:nth-child(6) { left: 80%; animation-delay: -11s; animation-duration: 12s; }
+  .smoke i:nth-child(1) { left: -3%; animation-delay: -1.5s; }
+  .smoke i:nth-child(2) { left: 9%; animation-delay: -5.5s; animation-duration: 13s; }
+  .smoke i:nth-child(3) { left: 21%; animation-delay: -9s; animation-duration: 15s; }
+  .smoke i:nth-child(4) { left: 34%; animation-delay: -3.5s; animation-duration: 12s; }
+  .smoke i:nth-child(5) { left: 46%; animation-delay: -8s; animation-duration: 14s; }
+  .smoke i:nth-child(6) { left: 58%; animation-delay: -11s; animation-duration: 10s; }
+  .smoke i:nth-child(7) { left: 71%; animation-delay: -2.2s; animation-duration: 13s; }
+  .smoke i:nth-child(8) { left: 84%; animation-delay: -6.8s; animation-duration: 12s; }
   @keyframes drift {
     0% { transform: translate(0, 26px) scale(.5); opacity: 0; }
-    24% { opacity: .4; }
-    62% { opacity: .28; }
-    100% { transform: translate(34px, -96px) scale(1.1); opacity: 0; }
+    20% { opacity: .72; }
+    60% { opacity: .48; }
+    100% { transform: translate(48px, -150px) scale(1.15); opacity: 0; }
   }
 
   /* ---------------- header ---------------- */
@@ -99,6 +101,25 @@
   .round-btn:hover { background: rgba(255,255,255,.09); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .round-btn:active { transform: scale(.94); }
   .round-btn svg { width: 28px; height: 28px; }
+
+  /* transport keys for whichever app is playing */
+  .transport { display: flex; align-items: center; gap: 8px; }
+  .tbtn {
+    width: 44px; height: 44px; border-radius: 50%; padding: 0; cursor: pointer;
+    display: grid; place-items: center; color: #fff;
+    border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+    transition: transform .12s ease, border-color .2s ease;
+  }
+  .tbtn:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .tbtn:active { transform: scale(.94); }
+  .tbtn svg { width: 22px; height: 22px; }
+  .tbtn.main {
+    width: 52px; height: 52px; border-color: rgba(255,255,255,.25);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white), color-mix(in srgb, var(--accent) 88%, black));
+    box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--accent) 90%, transparent);
+  }
+  .tbtn.main svg { width: 24px; height: 24px; }
 
   /* ---------------- body ---------------- */
   main { flex: 1; display: grid; grid-template-columns: .36fr .64fr; gap: 18px; min-height: 0; }
@@ -241,11 +262,23 @@
 
 <div class="app">
   <div class="head-zone">
-  <div class="smoke" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="smoke" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <header>
     <div class="clock">09:41</div>
     <div class="date">domenica 22 novembre</div>
     <span class="hdr-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <div class="spacer"></div>
+    <div class="transport">
+      <button class="tbtn" aria-label="Traccia precedente">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 6h2.2v12H6zM18.5 6.4v11.2L9.9 12z"/></svg>
+      </button>
+      <button class="tbtn main" aria-label="Pausa">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6.9 5.5h3.6v13H6.9zM13.5 5.5h3.6v13h-3.6z"/></svg>
+      </button>
+      <button class="tbtn" aria-label="Traccia successiva">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15.8 6H18v12h-2.2zM5.5 6.4v11.2L14.1 12z"/></svg>
+      </button>
+    </div>
     <div class="spacer"></div>
     <div class="chip"><span class="dot"></span>GPS ATTIVO</div>
     <button class="round-btn" id="themeBtn" title="Tema colore" aria-label="Tema colore">

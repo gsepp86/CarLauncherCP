@@ -20,6 +20,11 @@
     <string name="gps_off">GPS OFF</string>
     <string name="gps_search">CERCO GPS</string>
 
+    <string name="media_previous">Traccia precedente</string>
+    <string name="media_play">Riproduci</string>
+    <string name="media_pause">Pausa</string>
+    <string name="media_next">Traccia successiva</string>
+
     <string name="favorites_title">APP IN EVIDENZA</string>
     <string name="favorites_edit">Modifica</string>
     <string name="favorites_add">Aggiungi</string>

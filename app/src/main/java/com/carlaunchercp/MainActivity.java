@@ -47,6 +47,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private View gpsDot;
     private TextView maxView;
     private GridLayout favoritesGrid;
+    private ImageView playPauseIcon;
+    private FrameLayout playPauseButton;
+    private boolean mediaPlaying = true;
     private TileView radioTile;
     private TileView musicTile;
     private TileView music2Tile;
@@ -252,8 +255,22 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         }
         header.addView(clockBlock);
 
-        View spacer = new View(this);
-        header.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
+        // Transport keys live in the free space beside the clock, and drop below it
+        // on screens too narrow to keep everything on one line.
+        boolean inlineTransport = landscape
+                && getResources().getConfiguration().screenWidthDp >= 780;
+        View transport = buildTransport();
+        if (inlineTransport) {
+            FrameLayout transportSlot = new FrameLayout(this);
+            transportSlot.addView(transport, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.CENTER));
+            header.addView(transportSlot, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        } else {
+            View spacer = new View(this);
+            header.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
+        }
 
         LinearLayout gpsChip = new LinearLayout(this);
         gpsChip.setOrientation(LinearLayout.HORIZONTAL);
@@ -292,16 +309,90 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                         LauncherActions.launchComponent(this, component.flattenToString())));
         header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 54), Ui.dp(this, 54)));
 
-        // Haze drifting behind and just below the clock, so the header breathes.
+        // Haze rising behind the whole header, so the free space up top breathes.
+        int zoneHeight = Ui.dp(this, inlineTransport ? 108 : 148);
         FrameLayout zone = new FrameLayout(this);
         SmokeView smoke = new SmokeView(this);
         smoke.setTheme(theme);
         zone.addView(smoke, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 94), Gravity.TOP));
-        zone.addView(header, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, zoneHeight, Gravity.TOP));
+
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.addView(header, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (!inlineTransport) {
+            LinearLayout transportRow = new LinearLayout(this);
+            transportRow.setOrientation(LinearLayout.HORIZONTAL);
+            transportRow.setGravity(Gravity.CENTER);
+            transportRow.addView(transport);
+            LinearLayout.LayoutParams transportLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            transportLp.topMargin = Ui.dp(this, 6);
+            column.addView(transportRow, transportLp);
+        }
+        zone.addView(column, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP));
         return zone;
+    }
+
+    /** Back, play/pause and next: keys for whichever app owns the media session. */
+    private View buildTransport() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+
+        row.addView(mediaButton(R.drawable.ic_media_prev, R.string.media_previous,
+                MediaKeys.PREVIOUS, false, 0));
+        row.addView(mediaButton(R.drawable.ic_media_pause, R.string.media_pause,
+                MediaKeys.PLAY_PAUSE, true, 8));
+        row.addView(mediaButton(R.drawable.ic_media_next, R.string.media_next,
+                MediaKeys.NEXT, false, 8));
+        return row;
+    }
+
+    private FrameLayout mediaButton(int iconRes, int descriptionRes, final int keyCode,
+                                    boolean primary, int leftMarginDp) {
+        int size = Ui.dp(this, primary ? 52 : 44);
+        FrameLayout box = new FrameLayout(this);
+        box.setBackground(primary
+                ? Ui.card(this, Ui.mix(theme.accent, 0xFFFFFFFF, 0.22f), Ui.darken(theme.accent, 0.12f),
+                999f, 0x40FFFFFF, theme.withAlpha(0x66))
+                : Ui.card(this, 0x16FFFFFF, 0x0AFFFFFF, 999f, 0x1AFFFFFF, theme.withAlpha(0x40)));
+        ImageView icon = Ui.icon(this, iconRes, primary ? 26f : 22f, 0xFFFFFFFF);
+        int iconSize = Ui.dp(this, primary ? 26 : 22);
+        box.addView(icon, new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER));
+        box.setContentDescription(getString(descriptionRes));
+        box.setClickable(true);
+        box.setFocusable(true);
+        box.setOnClickListener(v -> {
+            MediaKeys.send(this, keyCode);
+            if (primary) togglePlayPause();
+        });
+        Ui.pressScale(box);
+        if (primary) {
+            playPauseIcon = icon;
+            playPauseButton = box;
+        }
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+        lp.leftMargin = Ui.dp(this, leftMarginDp);
+        box.setLayoutParams(lp);
+        return box;
+    }
+
+    /** Flips the glyph after a press; the player itself stays the source of truth. */
+    private void togglePlayPause() {
+        mediaPlaying = !mediaPlaying;
+        if (playPauseIcon != null) {
+            playPauseIcon.setImageResource(mediaPlaying
+                    ? R.drawable.ic_media_pause : R.drawable.ic_media_play);
+        }
+        if (playPauseButton != null) {
+            playPauseButton.setContentDescription(getString(mediaPlaying
+                    ? R.string.media_pause : R.string.media_play));
+        }
     }
 
     private View roundButton(int iconRes, int tint, View.OnClickListener listener) {

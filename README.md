@@ -28,7 +28,11 @@ si guida.
   per sostituirla o rimuoverla.
 - **Orologio e data** — ora molto grande con accanto la data per esteso, per esempio
   `domenica 22 novembre`, e subito dopo le barre animate dell'equalizzatore. Dietro
-  l'orologio si muove un lieve fumo colorato che sale e si dissolve.
+  l'orologio si muove un fumo colorato che sale fino in cima all'intestazione e si dissolve.
+- **Comandi musicali** — i tre comandi in alto (`‹` indietro, pausa/riproduci, `›` avanti)
+  mandano i tasti multimediali di sistema all'app che sta suonando in quel momento: pausa e
+  cambio traccia funzionano con qualunque player (radio FM, Spotify, YouTube Music, podcast)
+  senza aprire l'app. Su schermi stretti i comandi scendono su una riga sotto l'orologio.
 - **Tema colore** — 11 accenti (Rosso, Corallo, Arancio, Ambra, Verde, Turchese, Blu,
   Indaco, Viola, Magenta, Ghiaccio). Il colore viene applicato a sfondo, tachimetro,
   bordi e card, e resta memorizzato.
@@ -44,7 +48,7 @@ senza passare dal pannello delle impostazioni.
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.3.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.4.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).
@@ -91,6 +95,7 @@ app/src/main/java/com/carlaunchercp/
   TileView.java          tasto quadrato (icona colorata, titolo, sottotitolo)
   EqualizerBarsView.java barre animate accanto a orologio e data
   SmokeView.java         fumo animato che sale dietro l'orologio
+  MediaKeys.java         pausa e cambio traccia per l'app che sta suonando
   ThemePanel.java        pannello tema, lingua e app collegate
   AppPickerDialog.java   elenco app con ricerca
   LauncherActions.java   intent per radio, musica, telefono, navigazione
