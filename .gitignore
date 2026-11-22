@@ -11,3 +11,4 @@ keystore.properties
 
 # build artifacts locali
 artifacts/
+dist/
