@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Car Launcher CP</string>
+
+    <string name="tile_radio">Radio</string>
+    <string name="tile_radio_sub">Ascolta la radio</string>
+    <string name="tile_music">Musica BT</string>
+    <string name="tile_music_sub">Riproduci via Bluetooth</string>
+    <string name="tile_music_2">Musica</string>
+    <string name="tile_music_2_sub">Riproduci dalla memoria</string>
+    <string name="tile_phone">Telefono</string>
+    <string name="tile_phone_sub">Chiama in vivavoce</string>
+    <string name="tile_nav">Navigatore</string>
+    <string name="tile_nav_sub">Scegli l\'app di navigazione</string>
+
+    <string name="speed_label">VELOCITÀ</string>
+    <string name="speed_max">MAX %1$d</string>
+    <string name="gps">GPS</string>
+    <string name="gps_on">GPS ATTIVO</string>
+    <string name="gps_off">GPS OFF</string>
+    <string name="gps_search">CERCO GPS</string>
+
+    <string name="media_previous">Traccia precedente</string>
+    <string name="media_play">Riproduci</string>
+    <string name="media_pause">Pausa</string>
+    <string name="media_next">Traccia successiva</string>
+
+    <string name="favorites_title">APP IN EVIDENZA</string>
+    <string name="favorites_edit">Modifica</string>
+    <string name="favorites_add">Aggiungi</string>
+    <string name="add_favorite_title">Aggiungi app in evidenza</string>
+    <string name="replace_app">Sostituisci app</string>
+    <string name="remove_favorite">Rimuovi dalla home</string>
+
+    <string name="app_picker_title">Tutte le app</string>
+    <string name="search_apps">Cerca app</string>
+    <string name="choose_app">Scegli app</string>
+    <string name="choose_radio">Scegli l\'app radio</string>
+    <string name="choose_music">Scegli l\'app musica BT</string>
+    <string name="choose_music_2">Scegli l\'app musica</string>
+    <string name="choose_nav">Scegli il navigatore</string>
+
+    <string name="theme_title">Tema colore</string>
+    <string name="theme_sub">Scegli l\'accento dell\'abitacolo</string>
+    <string name="apps_section">APP COLLEGATE</string>
+    <string name="app_radio_row">App Radio</string>
+    <string name="app_music_row">App Musica BT</string>
+    <string name="app_music2_row">App Musica</string>
+    <string name="app_nav_row">App Navigatore</string>
+    <string name="theme_hint">Il tema si applica subito. Tieni premuto un tasto per scegliere l\'app.</string>
+    <string name="value_auto">Automatica</string>
+    <string name="value_to_choose">Da scegliere</string>
+    <string name="language_title">Lingua</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_english">English</string>
+
+    <string name="theme_red">Rosso</string>
+    <string name="theme_coral">Corallo</string>
+    <string name="theme_orange">Arancio</string>
+    <string name="theme_amber">Ambra</string>
+    <string name="theme_green">Verde</string>
+    <string name="theme_turquoise">Turchese</string>
+    <string name="theme_blue">Blu</string>
+    <string name="theme_indigo">Indaco</string>
+    <string name="theme_violet">Viola</string>
+    <string name="theme_magenta">Magenta</string>
+    <string name="theme_ice">Ghiaccio</string>
+</resources>

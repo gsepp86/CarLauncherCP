@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -138,7 +136,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 8), Ui.dp(this, 22), Ui.dp(this, 14));
+        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 0), Ui.dp(this, 22), Ui.dp(this, 14));
         content.addView(buildHeader(), new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -160,7 +158,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                 ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        favoritesLp.topMargin = Ui.dp(this, 14);
+        favoritesLp.topMargin = Ui.dp(this, 10);
         right.addView(buildFavoritesCard(landscape), favoritesLp);
 
         LinearLayout.LayoutParams rightLp = landscape
@@ -197,17 +195,17 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         updateGpsChip();
     }
 
-    /** Side of a square tile: as wide as the available row cell, within sane limits. */
+    /** Side of a square tile: a touch smaller than before, to leave room for the lower motion strip. */
     private int tileCellSize(boolean landscape) {
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int gap = Ui.dp(this, landscape ? 12 : 10);
         if (landscape) {
             int rightWidth = Math.round((screenWidth - Ui.dp(this, 44) - Ui.dp(this, 18)) * 0.64f);
             int cell = (rightWidth - gap * 4) / 5;
-            return Math.max(Ui.dp(this, 106), Math.min(cell, Ui.dp(this, 150)));
+            return Math.max(Ui.dp(this, 100), Math.min(cell, Ui.dp(this, 142)));
         }
         int cell = (screenWidth - Ui.dp(this, 44) - gap) / 2;
-        return Math.max(Ui.dp(this, 118), cell);
+        return Math.max(Ui.dp(this, 110), cell);
     }
 
     private View buildHeader() {
@@ -304,18 +302,17 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         themeLp.rightMargin = Ui.dp(this, 10);
         header.addView(themeButton, themeLp);
 
-        View appsButton = roundButton(R.drawable.ic_apps, 0, v ->
-                AppPickerDialog.show(this, theme, getString(R.string.app_picker_title), component ->
-                        LauncherActions.launchComponent(this, component.flattenToString())));
+        View appsButton = roundButton(R.drawable.ic_apps_grid, 0, v ->
+                AllAppsDialog.show(this, theme, getString(R.string.app_picker_title)));
         header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 54), Ui.dp(this, 54)));
 
-        // Haze rising behind the whole header, so the free space up top breathes.
-        int zoneHeight = Ui.dp(this, inlineTransport ? 108 : 148);
-        FrameLayout zone = new FrameLayout(this);
-        SmokeView smoke = new SmokeView(this);
-        smoke.setTheme(theme);
-        zone.addView(smoke, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, zoneHeight, Gravity.TOP));
+        // Thin accent streaks rising behind the header, back a touch so the clock still reads first.
+        int headerZone = Ui.dp(this, inlineTransport ? 96 : 124);
+        FrameLayout headerZoneBox = new FrameLayout(this);
+        SmokeView headerSmoke = new SmokeView(this);
+        headerSmoke.setTheme(theme);
+        headerZoneBox.addView(headerSmoke, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, headerZone, Gravity.TOP));
 
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -328,13 +325,36 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             transportRow.addView(transport);
             LinearLayout.LayoutParams transportLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            transportLp.topMargin = Ui.dp(this, 6);
+            transportLp.topMargin = Ui.dp(this, 2);
             column.addView(transportRow, transportLp);
         }
-        zone.addView(column, new FrameLayout.LayoutParams(
+        headerZoneBox.addView(column, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP));
-        return zone;
+        FrameLayout headerWrap = new FrameLayout(this);
+        headerWrap.addView(headerZoneBox, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        headerWrap.setAlpha(0.92f);
+
+        // Same motion lower on the screen, so the body feels like one surface, not a cut-out.
+        LinearLayout bodyStrip = new LinearLayout(this);
+        bodyStrip.setOrientation(LinearLayout.HORIZONTAL);
+        bodyStrip.setGravity(Gravity.TOP);
+        SmokeView bodySmoke = new SmokeView(this);
+        bodySmoke.setTheme(theme);
+        bodySmoke.setAnchorBottom(true);
+        int bodyStripHeight = Ui.dp(this, landscape ? 64 : 84);
+        bodyStrip.addView(bodySmoke, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, bodyStripHeight, Gravity.TOP));
+        bodyStrip.setAlpha(0.9f);
+
+        LinearLayout outer = new LinearLayout(this);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.addView(headerWrap, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        outer.addView(bodyStrip, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, bodyStripHeight));
+        return outer;
     }
 
     /** Back, play/pause and next: keys for whichever app owns the media session. */
@@ -537,14 +557,14 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         card.addView(head);
 
-        favoritesGrid = new GridLayout(this);
-        favoritesGrid.setColumnCount(landscape ? 3 : 6);
-        LinearLayout.LayoutParams gridLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
-                landscape ? 1f : 0f);
-        gridLp.topMargin = Ui.dp(this, 6);
-        card.addView(favoritesGrid, gridLp);
+                    favoritesGrid = new GridLayout(this);
+            favoritesGrid.setColumnCount(landscape ? 3 : 5);
+            LinearLayout.LayoutParams gridLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
+                    landscape ? 1f : 0f);
+            gridLp.topMargin = Ui.dp(this, 6);
+            card.addView(favoritesGrid, gridLp);
         return card;
     }
 
@@ -598,7 +618,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             icon.setImageDrawable(getPackageManager()
                     .getApplicationIcon(packageOf(flattened)));
         } catch (Exception e) {
-            icon.setImageResource(R.drawable.ic_apps);
+            icon.setImageResource(R.drawable.ic_apps_grid);
         }
         cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 34), Ui.dp(this, 34)));
 
@@ -635,7 +655,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         try {
             icon.setImageDrawable(getPackageManager().getApplicationIcon(packageOf(flattened)));
         } catch (Exception e) {
-            icon.setImageResource(R.drawable.ic_apps);
+            icon.setImageResource(R.drawable.ic_apps_grid);
         }
         box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 38), Ui.dp(this, 38), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));

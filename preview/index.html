@@ -47,34 +47,49 @@
 
   .app {
     position: relative; z-index: 1;
-    height: 100%; padding: 8px 22px 14px;
+    height: 100vh; overflow: hidden; padding: 8px 22px 14px;
     display: flex; flex-direction: column; gap: 10px;
   }
 
-  /* smoke haze drifting behind and below the clock */
-  .head-zone { position: relative; padding-bottom: 26px; }
+  /* thin accent streaks drifting up behind the header and along the bottom strip */
+  .head-zone { position: relative; padding-bottom: 14px; }
   .head-zone header { position: relative; z-index: 1; }
-  .smoke { position: absolute; left: -22px; right: -22px; top: -10px; bottom: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-  .smoke i {
-    position: absolute; bottom: -70px; width: 250px; height: 340px; border-radius: 50%; opacity: 0;
-    background: radial-gradient(ellipse, color-mix(in srgb, var(--accent) 90%, #fff) 0%, color-mix(in srgb, var(--accent) 62%, transparent) 44%, transparent 74%);
-    filter: blur(7px);
-    animation: drift 11s linear infinite;
+  .streaks { position: absolute; left: -22px; right: -22px; overflow: hidden; pointer-events: none; z-index: 0; }
+  .head-zone .streaks {
+    top: -8px; height: 124px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,.35) 0%, #000 34%, #000 74%, transparent 100%);
   }
-  .smoke i:nth-child(1) { left: -3%; animation-delay: -1.5s; }
-  .smoke i:nth-child(2) { left: 9%; animation-delay: -5.5s; animation-duration: 13s; }
-  .smoke i:nth-child(3) { left: 21%; animation-delay: -9s; animation-duration: 15s; }
-  .smoke i:nth-child(4) { left: 34%; animation-delay: -3.5s; animation-duration: 12s; }
-  .smoke i:nth-child(5) { left: 46%; animation-delay: -8s; animation-duration: 14s; }
-  .smoke i:nth-child(6) { left: 58%; animation-delay: -11s; animation-duration: 10s; }
-  .smoke i:nth-child(7) { left: 71%; animation-delay: -2.2s; animation-duration: 13s; }
-  .smoke i:nth-child(8) { left: 84%; animation-delay: -6.8s; animation-duration: 12s; }
-  @keyframes drift {
-    0% { transform: translate(0, 26px) scale(.5); opacity: 0; }
-    20% { opacity: .72; }
-    60% { opacity: .48; }
-    100% { transform: translate(48px, -150px) scale(1.15); opacity: 0; }
+  .streaks i {
+    position: absolute; height: 2.5px; border-radius: 999px; opacity: 0;
+    background: linear-gradient(90deg, transparent,
+      color-mix(in srgb, var(--accent) 72%, transparent) 16%,
+      color-mix(in srgb, var(--accent) 96%, #fff) 50%,
+      color-mix(in srgb, var(--accent) 72%, transparent) 84%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent);
+    animation: streak-rise 8s linear infinite;
   }
+  .streaks i:nth-child(2n) { height: 1.5px; opacity: 0; }
+  .streaks i:nth-child(1) { bottom: 2%; left: 1%; right: 61%; animation-delay: -1.2s; animation-duration: 8.4s; }
+  .streaks i:nth-child(2) { bottom: 34%; left: 12%; right: 48%; animation-delay: -4.6s; animation-duration: 7.2s; }
+  .streaks i:nth-child(3) { bottom: 14%; left: 26%; right: 36%; animation-delay: -2.7s; animation-duration: 9.1s; }
+  .streaks i:nth-child(4) { bottom: 52%; left: 38%; right: 22%; animation-delay: -6.1s; animation-duration: 7.8s; }
+  .streaks i:nth-child(5) { bottom: 24%; left: 49%; right: 14%; animation-delay: -3.4s; animation-duration: 8.8s; }
+  .streaks i:nth-child(6) { bottom: 66%; left: 58%; right: 4%; animation-delay: -7.3s; animation-duration: 7.4s; }
+  .streaks i:nth-child(7) { bottom: 40%; left: 31%; right: 49%; animation-delay: -5.2s; animation-duration: 9.6s; }
+  .streaks i:nth-child(8) { bottom: 78%; left: 4%; right: 72%; animation-delay: -8.4s; animation-duration: 8.1s; }
+  @keyframes streak-rise {
+    0% { transform: translateY(0) scaleX(.62); opacity: 0; }
+    14% { opacity: .92; }
+    72% { opacity: .5; }
+    100% { transform: translateY(-132px) scaleX(1.04); opacity: 0; }
+  }
+
+  /* the same motion in a slim strip at the bottom, so the body closes with animation */
+  .foot-strip {
+    position: relative; height: 72px; margin: 0 -22px -6px; overflow: hidden; pointer-events: none;
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.6) 40%, #000 82%);
+  }
+  .foot-strip .streaks { inset: 0; }
 
   /* ---------------- header ---------------- */
   header { display: flex; align-items: center; gap: 10px; }
@@ -213,6 +228,55 @@
   .fav-name { font-size: 19px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fav-name.accent { color: color-mix(in srgb, var(--accent) 80%, white); }
 
+  /* ---------------- all apps ---------------- */
+  .apps-backdrop {
+    position: fixed; inset: 0; z-index: 12; display: none;
+    background: rgba(4,5,7,.78); backdrop-filter: blur(4px);
+    place-items: center; padding: 12px;
+  }
+  .apps-backdrop.open { display: grid; }
+  .apps-panel {
+    width: min(980px, 97vw); height: min(680px, 95vh); border-radius: 26px;
+    padding: 18px 22px 14px; display: flex; flex-direction: column;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    background: linear-gradient(180deg, #10141A, #0B0E13);
+    box-shadow: 0 30px 80px -30px #000;
+    animation: pop .18s ease-out;
+  }
+  .apps-head { display: flex; align-items: center; }
+  .apps-head .sheet-title { flex: 1; }
+  .apps-search {
+    margin-top: 12px; padding: 11px 14px; border-radius: 14px; font-size: 19px; width: 100%;
+    color: #E8EDF6; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.09);
+    outline: none;
+  }
+  .apps-search::placeholder { color: #7E8797; }
+  .apps-grid {
+    flex: 1; min-height: 0; margin-top: 14px; display: grid;
+    grid-template-columns: repeat(2, 1fr); gap: 12px; align-content: start;
+    overflow-y: auto; padding-right: 4px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.16) transparent;
+  }
+  .apps-grid::-webkit-scrollbar { width: 6px; }
+  .apps-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 999px; }
+  .apps-grid::-webkit-scrollbar-track { background: transparent; }
+  .app-tile {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    min-height: 138px; padding: 16px 14px; border-radius: 18px; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .app-tile:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .app-tile .app-icon {
+    width: 76px; height: 76px; border-radius: 20px; display: grid; place-items: center;
+    background: #1A2029; border: 1px solid rgba(255,255,255,.12);
+  }
+  .app-tile .app-icon svg { width: 46px; height: 46px; }
+  .app-tile .app-name {
+    font-size: 17px; color: #F1F5FA; font-weight: 600; max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
   /* ---------------- settings sheet ---------------- */
   .sheet-backdrop {
     position: fixed; inset: 0; z-index: 10; display: none;
@@ -262,7 +326,7 @@
 
 <div class="app">
   <div class="head-zone">
-  <div class="smoke" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="streaks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <header>
     <div class="clock">09:41</div>
     <div class="date">domenica 22 novembre</div>
@@ -291,7 +355,7 @@
         <circle cx="7.6" cy="16.4" r="1.4" fill="#AB47BC"/>
       </svg>
     </button>
-    <button class="round-btn" title="App" aria-label="App">
+    <button class="round-btn" id="appsBtn" title="Tutte le app" aria-label="Tutte le app">
       <svg viewBox="0 0 24 24">
         <rect x="2" y="3" width="10" height="10" rx="2.4" fill="#FF5252"/>
         <rect x="12" y="3" width="10" height="10" rx="2.4" fill="#FFB74D"/>
@@ -341,14 +405,14 @@
           <span class="icon-box">
             <svg viewBox="0 0 24 24"><path fill="#2196F3" d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg>
           </span>
-          <div class="copy"><div class="title">Musica</div><div class="sub">Spotify</div></div>
+          <div class="copy"><div class="title">Musica BT</div><div class="sub">Riproduci via Bluetooth</div></div>
         </div>
 
         <div class="tile">
           <span class="icon-box">
             <svg viewBox="0 0 24 24"><path fill="#B388FF" d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg>
           </span>
-          <div class="copy"><div class="title">Musica 2</div><div class="sub">YouTube Music</div></div>
+          <div class="copy"><div class="title">Musica</div><div class="sub">Riproduci dalla memoria</div></div>
         </div>
 
         <div class="tile">
@@ -403,6 +467,23 @@
       </div>
     </div>
   </main>
+
+  <div class="foot-strip" aria-hidden="true">
+    <div class="streaks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+</div>
+
+<div class="apps-backdrop" id="appsBackdrop">
+  <div class="apps-panel">
+    <div class="apps-head">
+      <div class="sheet-title">Tutte le app</div>
+      <button class="close" id="appsClose" aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <input class="apps-search" id="appsSearch" type="search" placeholder="Cerca app" aria-label="Cerca app">
+    <div class="apps-grid" id="appsGrid"></div>
+  </div>
 </div>
 
 <div class="sheet-backdrop" id="backdrop">
@@ -427,17 +508,17 @@
     <div class="section">APP COLLEGATE</div>
     <div class="row">
       <span class="mini"><svg viewBox="0 0 24 24"><path d="M7,8 L15,3.6" stroke="#FFB74D" stroke-width="1.6" stroke-linecap="round" fill="none"/><rect x="2" y="8" width="20" height="10" rx="2" fill="#E53935"/><rect x="2.8" y="10.5" width="9.9" height="4" rx="1.2" fill="#FFCDD2"/><circle cx="17.6" cy="11.1" r="1.7" fill="#FFB74D"/><circle cx="17.6" cy="15.2" r="1.7" fill="#FFB74D"/></svg></span>
-      <span class="name">App radio FM</span><span class="val">Automatica</span>
+      <span class="name">App Radio</span><span class="val">Automatica</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="row">
       <span class="mini"><svg viewBox="0 0 24 24"><path fill="#2196F3" d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg></span>
-      <span class="name">App musica</span><span class="val">Automatica</span>
+      <span class="name">App Musica BT</span><span class="val">Automatica</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="row">
       <span class="mini"><svg viewBox="0 0 24 24"><path fill="#B388FF" d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg></span>
-      <span class="name">Seconda app musica</span><span class="val">Da scegliere</span>
+      <span class="name">App Musica</span><span class="val">Da scegliere</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="row">
@@ -496,11 +577,54 @@
     ticksGroup.appendChild(line);
   }
 
+  const APP_LIST = [
+    ["Spotify", "M12 3v10.6a3.4 3.4 0 103 3.3V7h4V3h-7z", "#1DB954"],
+    ["YouTube Music", "M12 3v10.55a4 4 0 104 4V7h4V3h-8z", "#FF5252"],
+    ["Google Maps", "M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z", "#3D9BFF"],
+    ["Telefono", "M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2 3.6.9V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5l.9 3.6z", "#34C759"],
+    ["Messaggi", "M21 12a8 8 0 01-11.6 7.2L5 20l1-3.8A8 8 0 1121 12z", "#5AC8FA"],
+    ["Radio FM", "M7 8l8-4.4M2 8h20v10H2zM3 10.5h9v4H3z", "#E53935"],
+    ["Impostazioni", "M12 8.5A3.5 3.5 0 1012 15.5 3.5 3.5 0 0012 8.5zM4 12l-1.5-2 1.6-2.6 2.4.5 1.6-1.1.4-2.4h3l.4 2.4 1.6 1.1 2.4-.5L18.5 10 20 12l-1.5 2 1.6 2.6-2.4.5-1.6 1.1-.4 2.4h-3l-.4-2.4-1.6-1.1-2.4.5L4.4 14z", "#9AA4B3"],
+    ["Camera", "M4 6h3l1.5-2h7L17 6h3v13H4z", "#FFB74D"]
+  ];
+
+  const appsBackdrop = document.getElementById("appsBackdrop");
+  const appsGrid = document.getElementById("appsGrid");
+  const appsSearch = document.getElementById("appsSearch");
+
+  function renderApps(query) {
+    const needle = (query || "").trim().toLowerCase();
+    appsGrid.innerHTML = "";
+    APP_LIST.filter(([name]) => name.toLowerCase().includes(needle)).forEach(([name, path, color]) => {
+      const tile = document.createElement("div");
+      tile.className = "app-tile";
+      tile.innerHTML = `<span class="app-icon"><svg viewBox="0 0 24 24"><path fill="${color}" d="${path}"/></svg></span><span class="app-name">${name}</span>`;
+      tile.onclick = () => appsBackdrop.classList.remove("open");
+      appsGrid.appendChild(tile);
+    });
+  }
+
+  renderApps("");
+  document.getElementById("appsBtn").onclick = () => {
+    renderApps("");
+    appsSearch.value = "";
+    appsBackdrop.classList.add("open");
+  };
+  document.getElementById("appsClose").onclick = () => appsBackdrop.classList.remove("open");
+  appsBackdrop.addEventListener("click", e => {
+    if (e.target === appsBackdrop) appsBackdrop.classList.remove("open");
+  });
+  appsSearch.addEventListener("input", () => renderApps(appsSearch.value));
+
   const backdrop = document.getElementById("backdrop");
   document.getElementById("themeBtn").onclick = () => backdrop.classList.add("open");
   document.getElementById("closeBtn").onclick = () => backdrop.classList.remove("open");
   backdrop.addEventListener("click", e => { if (e.target === backdrop) backdrop.classList.remove("open"); });
-  document.addEventListener("keydown", e => { if (e.key === "Escape") backdrop.classList.remove("open"); });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    backdrop.classList.remove("open");
+    appsBackdrop.classList.remove("open");
+  });
 </script>
 </body>
 </html>

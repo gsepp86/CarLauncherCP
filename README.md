@@ -17,9 +17,11 @@ si guida.
   valore.
 - **Radio FM** — apre l'app radio del tuo autoradio: viene cercata automaticamente fra i
   pacchetti più diffusi, altrimenti la scegli tu e la scelta viene ricordata.
-- **Musica** — apre il lettore musicale (app di sistema o quella che preferisci).
-- **Musica 2** — una seconda scorciatoia musicale, con un'app scelta liberamente: utile per
-  tenere, per esempio, Spotify su un tasto e la radio via internet sull'altro.
+- **Musica BT** — apre la musica in streaming dal Bluetooth (app di sistema o quella che
+  preferisci).
+- **Musica** — la cartella della musica sul dispositivo, con un'app scelta liberamente:
+  utile per esempio per avere Spotify su un tasto e la musica dalla memoria sull'altro.
+  L'ordine dei tasti è Radio, Musica BT, Musica, Telefono, Navigatore.
 - **Telefono** — apre il dialer per chiamare in vivavoce.
 - **Navigatore** — apre l'app di navigazione scelta fra quelle installate sul sistema
   (Google Maps, Waze, Here, TomTom, Sygic, OsmAnd, Yandex, iGO e altre). Se non ne è
@@ -28,7 +30,12 @@ si guida.
   per sostituirla o rimuoverla.
 - **Orologio e data** — ora molto grande con accanto la data per esteso, per esempio
   `domenica 22 novembre`, e subito dopo le barre animate dell'equalizzatore. Dietro
-  l'orologio si muove un fumo colorato che sale fino in cima all'intestazione e si dissolve.
+  l'orologio salgono sottili linee colorate che sfumano verso l'alto; la stessa animazione
+  chiude l'interfaccia in basso, in una banda sottile, così lo schermo respira da entrambi
+  i lati.
+- **Tutte le app** — il tasto in alto a destra apre una griglia a due colonne che occupa
+  quasi tutto lo schermo: celle grandi, icona e nome leggibili, ricerca con filtro anche
+  sulle lettere accentate. Tocco sull'icona = app a tutto schermo.
 - **Comandi musicali** — i tre comandi in alto (`‹` indietro, pausa/riproduci, `›` avanti)
   mandano i tasti multimediali di sistema all'app che sta suonando in quel momento: pausa e
   cambio traccia funzionano con qualunque player (radio FM, Spotify, YouTube Music, podcast)
@@ -38,17 +45,19 @@ si guida.
   bordi e card, e resta memorizzato.
 - **Lingua** — interfaccia in **italiano** o **inglese**, scelta dal pannello del tema
   (riga `Lingua`). Anche date e dialoghi seguono la lingua scelta.
-- **Tasti quadrati** — cinque tasti di pari dimensioni (Radio FM, Musica, Musica 2,
+- **Tasti quadrati** — cinque tasti di pari dimensioni (Radio, Musica BT, Musica,
   Telefono, Navigatore) disposti in fila su schermo orizzontale e in griglia su verticale.
 
-Tieni premuto un tasto (Radio, Musica, Musica 2, Navigatore) per cambiare l'app collegata
+Tieni premuto un tasto (Radio, Musica BT, Musica, Navigatore) per cambiare l'app collegata
 senza passare dal pannello delle impostazioni.
+
+![Tutte le app](screenshots/tutte-le-app.png)
 
 ![Tema colore](screenshots/tema-colore.png)
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.4.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.5.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).
@@ -94,16 +103,17 @@ app/src/main/java/com/carlaunchercp/
   Speedometer.java       velocità GPS filtrata (fermo, isteresi, fix scaduto)
   TileView.java          tasto quadrato (icona colorata, titolo, sottotitolo)
   EqualizerBarsView.java barre animate accanto a orologio e data
-  SmokeView.java         fumo animato che sale dietro l'orologio
+  SmokeView.java         linee sottili animate dietro l'orologio e in basso
   MediaKeys.java         pausa e cambio traccia per l'app che sta suonando
   ThemePanel.java        pannello tema, lingua e app collegate
-  AppPickerDialog.java   elenco app con ricerca
+  AppPickerDialog.java   elenco app con ricerca (scelta app dei tasti)
+  AllAppsDialog.java     griglia "Tutte le app" a due colonne a tutto schermo
   LauncherActions.java   intent per radio, musica, telefono, navigazione
   ThemePalette.java      palette degli accenti
   LocaleHelper.java      applicazione della lingua italiana/inglese
   Prefs.java             preferenze
   Ui.java                helper di stile
   CarBackgroundView.java sfondo con bagliori dell'accento
-app/src/main/res/values/    testi italiani
-app/src/main/res/values-en/ testi inglesi
+app/src/main/res/values/    testi inglesi
+app/src/main/res/values-it/ testi italiani
 ```
