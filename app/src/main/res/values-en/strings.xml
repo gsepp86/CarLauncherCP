@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Car Launcher CP</string>
+
+    <string name="tile_radio">Radio FM</string>
+    <string name="tile_radio_sub">Listen to the radio</string>
+    <string name="tile_music">Music</string>
+    <string name="tile_music_sub">Play from your phone</string>
+    <string name="tile_music_2">Music 2</string>
+    <string name="tile_music_2_sub">Second music app</string>
+    <string name="tile_phone">Phone</string>
+    <string name="tile_phone_sub">Hands-free calling</string>
+    <string name="tile_nav">Navigation</string>
+    <string name="tile_nav_sub">Pick the navigation app</string>
+
+    <string name="speed_label">SPEED</string>
+    <string name="speed_max">MAX %1$d</string>
+    <string name="gps">GPS</string>
+    <string name="gps_on">GPS ACTIVE</string>
+    <string name="gps_off">GPS OFF</string>
+    <string name="gps_search">FINDING GPS</string>
+
+    <string name="favorites_title">FEATURED APPS</string>
+    <string name="favorites_edit">Edit</string>
+    <string name="favorites_add">Add</string>
+    <string name="add_favorite_title">Add a featured app</string>
+    <string name="replace_app">Replace app</string>
+    <string name="remove_favorite">Remove from home</string>
+
+    <string name="app_picker_title">Apps</string>
+    <string name="search_apps">Search apps</string>
+    <string name="choose_app">Choose app</string>
+    <string name="choose_radio">Choose the radio app</string>
+    <string name="choose_music">Choose the music app</string>
+    <string name="choose_music_2">Choose the second music app</string>
+    <string name="choose_nav">Choose the navigation app</string>
+
+    <string name="theme_title">Colour theme</string>
+    <string name="theme_sub">Pick the cockpit accent</string>
+    <string name="apps_section">LINKED APPS</string>
+    <string name="app_radio_row">FM radio app</string>
+    <string name="app_music_row">Music app</string>
+    <string name="app_music2_row">Second music app</string>
+    <string name="app_nav_row">Navigation app</string>
+    <string name="theme_hint">The theme applies right away. Long-press a tile to choose its app.</string>
+    <string name="value_auto">Automatic</string>
+    <string name="value_to_choose">Not set</string>
+    <string name="language_title">Language</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_english">English</string>
+
+    <string name="theme_red">Red</string>
+    <string name="theme_coral">Coral</string>
+    <string name="theme_orange">Orange</string>
+    <string name="theme_amber">Amber</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_turquoise">Turquoise</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_indigo">Indigo</string>
+    <string name="theme_violet">Violet</string>
+    <string name="theme_magenta">Magenta</string>
+    <string name="theme_ice">Ice</string>
+</resources>

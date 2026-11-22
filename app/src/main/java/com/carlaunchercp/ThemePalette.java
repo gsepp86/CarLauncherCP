@@ -1,5 +1,6 @@
 package com.carlaunchercp;
 
+import android.content.Context;
 import android.graphics.Color;
 
 /**
@@ -9,26 +10,26 @@ import android.graphics.Color;
 public final class ThemePalette {
 
     public final String id;
-    public final String label;
+    public final int labelRes;
     public final int accent;
 
-    private ThemePalette(String id, String label, int accent) {
+    private ThemePalette(String id, int labelRes, int accent) {
         this.id = id;
-        this.label = label;
+        this.labelRes = labelRes;
         this.accent = accent;
     }
 
-    public static final ThemePalette ROSSO = new ThemePalette("red", "Rosso", 0xFFFF3B30);
-    public static final ThemePalette CORALLO = new ThemePalette("coral", "Corallo", 0xFFFF5A3C);
-    public static final ThemePalette ARANCIO = new ThemePalette("orange", "Arancio", 0xFFFF7A18);
-    public static final ThemePalette AMBRA = new ThemePalette("amber", "Ambra", 0xFFFFB020);
-    public static final ThemePalette VERDE = new ThemePalette("green", "Verde", 0xFF3FDB86);
-    public static final ThemePalette TURCHESE = new ThemePalette("turquoise", "Turchese", 0xFF1FC9C0);
-    public static final ThemePalette BLU = new ThemePalette("blue", "Blu", 0xFF3D9BFF);
-    public static final ThemePalette INDACO = new ThemePalette("indigo", "Indaco", 0xFF7A6CFF);
-    public static final ThemePalette VIOLA = new ThemePalette("violet", "Viola", 0xFFBE5CFF);
-    public static final ThemePalette MAGENTA = new ThemePalette("magenta", "Magenta", 0xFFFF4D93);
-    public static final ThemePalette GHIACCIO = new ThemePalette("ice", "Ghiaccio", 0xFFE6EDF7);
+    public static final ThemePalette ROSSO = new ThemePalette("red", R.string.theme_red, 0xFFFF3B30);
+    public static final ThemePalette CORALLO = new ThemePalette("coral", R.string.theme_coral, 0xFFFF5A3C);
+    public static final ThemePalette ARANCIO = new ThemePalette("orange", R.string.theme_orange, 0xFFFF7A18);
+    public static final ThemePalette AMBRA = new ThemePalette("amber", R.string.theme_amber, 0xFFFFB020);
+    public static final ThemePalette VERDE = new ThemePalette("green", R.string.theme_green, 0xFF3FDB86);
+    public static final ThemePalette TURCHESE = new ThemePalette("turquoise", R.string.theme_turquoise, 0xFF1FC9C0);
+    public static final ThemePalette BLU = new ThemePalette("blue", R.string.theme_blue, 0xFF3D9BFF);
+    public static final ThemePalette INDACO = new ThemePalette("indigo", R.string.theme_indigo, 0xFF7A6CFF);
+    public static final ThemePalette VIOLA = new ThemePalette("violet", R.string.theme_violet, 0xFFBE5CFF);
+    public static final ThemePalette MAGENTA = new ThemePalette("magenta", R.string.theme_magenta, 0xFFFF4D93);
+    public static final ThemePalette GHIACCIO = new ThemePalette("ice", R.string.theme_ice, 0xFFE6EDF7);
 
     public static final ThemePalette[] ALL = {
             ROSSO, CORALLO, ARANCIO, AMBRA, VERDE, TURCHESE,
@@ -42,6 +43,10 @@ public final class ThemePalette {
             }
         }
         return ROSSO;
+    }
+
+    public String label(Context context) {
+        return context.getString(labelRes);
     }
 
     public int withAlpha(int alpha) {

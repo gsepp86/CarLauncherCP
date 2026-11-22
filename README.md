@@ -1,9 +1,10 @@
 # Car Launcher CP
 
 Launcher per autoradio Android: un'unica schermata "da plancia" con velocità GPS,
-radio FM, musica Bluetooth, telefono, navigatore, app in evidenza e tema colore
-selezionabile. Il tema predefinito è il rosso, ma l'accento dell'interfaccia si cambia
-al volo. Testi molto grandi, pensati per essere letti mentre si guida.
+radio FM, due scorciatoie musicali, telefono, navigatore, app in evidenza e tema
+colore selezionabile. Il tema predefinito è il rosso, ma l'accento dell'interfaccia
+si cambia al volo. Testi grandi e icone colorate, pensati per essere letti mentre
+si guida.
 
 ![Schermata principale](screenshots/launcher.png)
 
@@ -16,28 +17,34 @@ al volo. Testi molto grandi, pensati per essere letti mentre si guida.
   valore.
 - **Radio FM** — apre l'app radio del tuo autoradio: viene cercata automaticamente fra i
   pacchetti più diffusi, altrimenti la scegli tu e la scelta viene ricordata.
-- **Musica Bluetooth** — apre il lettore musicale (app di sistema o quella che preferisci).
-  Mentre un brano è in riproduzione il tasto mostra **barre animate** che si muovono.
+- **Musica** — apre il lettore musicale (app di sistema o quella che preferisci).
+- **Musica 2** — una seconda scorciatoia musicale, con un'app scelta liberamente: utile per
+  tenere, per esempio, Spotify su un tasto e la radio via internet sull'altro.
 - **Telefono** — apre il dialer per chiamare in vivavoce.
 - **Navigatore** — apre l'app di navigazione scelta fra quelle installate sul sistema
   (Google Maps, Waze, Here, TomTom, Sygic, OsmAnd, Yandex, iGO e altre). Se non ne è
   stata scelta una viene rilevata automaticamente; la scelta resta memorizzata.
-- **App in evidenza** — fino a 6 scorciatoie scelte da te, in una griglia 2×3
-  (una riga in verticale). Tieni premuta una scorciatoia per sostituirla o rimuoverla.
+- **App in evidenza** — fino a 6 scorciatoie scelte da te. Tieni premuta una scorciatoia
+  per sostituirla o rimuoverla.
+- **Orologio e data** — ora molto grande con accanto la data per esteso, per esempio
+  `domenica 22 novembre`.
 - **Tema colore** — 11 accenti (Rosso, Corallo, Arancio, Ambra, Verde, Turchese, Blu,
   Indaco, Viola, Magenta, Ghiaccio). Il colore viene applicato a sfondo, tachimetro,
-  icone e card, e resta memorizzato.
-- **Layout adattivo** — orizzontale per la plancia (quattro tasti in griglia 2×2),
-  verticale per l'uso su telefono.
+  bordi e card, e resta memorizzato.
+- **Lingua** — interfaccia in **italiano** o **inglese**, scelta dal pannello del tema
+  (riga `Lingua`). Anche date e dialoghi seguono la lingua scelta.
+- **Tasti quadrati** — cinque tasti di pari dimensioni (Radio FM, Musica, Musica 2,
+  Telefono, Navigatore) disposti in fila su schermo orizzontale e in griglia su verticale.
+  Mentre un brano è in riproduzione le barre animate compaiono sui tasti musicali.
 
-Tieni premuto un tasto (Radio, Musica, Navigatore) per cambiare l'app collegata senza
-passare dal pannello del tema.
+Tieni premuto un tasto (Radio, Musica, Musica 2, Navigatore) per cambiare l'app collegata
+senza passare dal pannello delle impostazioni.
 
 ![Tema colore](screenshots/tema-colore.png)
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.1.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.2.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).
@@ -78,16 +85,19 @@ nel browser, senza build. Non fa parte dell'APK.
 
 ```
 app/src/main/java/com/carlaunchercp/
-  MainActivity.java      schermata principale e layout
+  MainActivity.java      schermata principale e layout a tasti quadrati
   SpeedGaugeView.java    tachimetro disegnato su Canvas
   Speedometer.java       velocità GPS filtrata (fermo, isteresi, fix scaduto)
-  TileView.java          card Radio / Musica / Telefono / Navigatore
+  TileView.java          tasto quadrato (icona colorata, titolo, sottotitolo)
   EqualizerBarsView.java barre animate durante la riproduzione
-  ThemePanel.java        pannello tema + app collegate
+  ThemePanel.java        pannello tema, lingua e app collegate
   AppPickerDialog.java   elenco app con ricerca
   LauncherActions.java   intent per radio, musica, telefono, navigazione
   ThemePalette.java      palette degli accenti
+  LocaleHelper.java      applicazione della lingua italiana/inglese
   Prefs.java             preferenze
   Ui.java                helper di stile
   CarBackgroundView.java sfondo con bagliori dell'accento
+app/src/main/res/values/    testi italiani
+app/src/main/res/values-en/ testi inglesi
 ```

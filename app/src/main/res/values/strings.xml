@@ -1,14 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Car Launcher CP</string>
+
     <string name="tile_radio">Radio FM</string>
     <string name="tile_radio_sub">Ascolta la radio</string>
-    <string name="tile_music">Musica Bluetooth</string>
+    <string name="tile_music">Musica</string>
     <string name="tile_music_sub">Riproduci dal telefono</string>
+    <string name="tile_music_2">Musica 2</string>
+    <string name="tile_music_2_sub">Seconda app musicale</string>
     <string name="tile_phone">Telefono</string>
     <string name="tile_phone_sub">Chiama in vivavoce</string>
     <string name="tile_nav">Navigatore</string>
     <string name="tile_nav_sub">Scegli l\'app di navigazione</string>
-    <string name="favorites">App in evidenza</string>
+
+    <string name="speed_label">VELOCITÀ</string>
+    <string name="speed_max">MAX %1$d</string>
+    <string name="gps">GPS</string>
+    <string name="gps_on">GPS ATTIVO</string>
+    <string name="gps_off">GPS OFF</string>
+    <string name="gps_search">CERCO GPS</string>
+
+    <string name="favorites_title">APP IN EVIDENZA</string>
+    <string name="favorites_edit">Modifica</string>
+    <string name="favorites_add">Aggiungi</string>
+    <string name="add_favorite_title">Aggiungi app in evidenza</string>
+    <string name="replace_app">Sostituisci app</string>
+    <string name="remove_favorite">Rimuovi dalla home</string>
+
+    <string name="app_picker_title">App</string>
+    <string name="search_apps">Cerca app</string>
+    <string name="choose_app">Scegli app</string>
+    <string name="choose_radio">Scegli l\'app radio</string>
+    <string name="choose_music">Scegli l\'app musica</string>
+    <string name="choose_music_2">Scegli la seconda app musica</string>
+    <string name="choose_nav">Scegli il navigatore</string>
+
     <string name="theme_title">Tema colore</string>
+    <string name="theme_sub">Scegli l\'accento dell\'abitacolo</string>
+    <string name="apps_section">APP COLLEGATE</string>
+    <string name="app_radio_row">App radio FM</string>
+    <string name="app_music_row">App musica</string>
+    <string name="app_music2_row">Seconda app musica</string>
+    <string name="app_nav_row">App navigatore</string>
+    <string name="theme_hint">Il tema si applica subito. Tieni premuto un tasto per scegliere l\'app.</string>
+    <string name="value_auto">Automatica</string>
+    <string name="value_to_choose">Da scegliere</string>
+    <string name="language_title">Lingua</string>
+    <string name="language_italian">Italiano</string>
+    <string name="language_english">English</string>
+
+    <string name="theme_red">Rosso</string>
+    <string name="theme_coral">Corallo</string>
+    <string name="theme_orange">Arancio</string>
+    <string name="theme_amber">Ambra</string>
+    <string name="theme_green">Verde</string>
+    <string name="theme_turquoise">Turchese</string>
+    <string name="theme_blue">Blu</string>
+    <string name="theme_indigo">Indaco</string>
+    <string name="theme_violet">Viola</string>
+    <string name="theme_magenta">Magenta</string>
+    <string name="theme_ice">Ghiaccio</string>
 </resources>

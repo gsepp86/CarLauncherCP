@@ -50,12 +50,12 @@ public final class AppPickerDialog {
         LinearLayout header = new LinearLayout(activity);
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        TextView heading = Ui.text(activity, title, 22f, 0xFFF4F7FB, Ui.displayBold(activity));
+        TextView heading = Ui.text(activity, title, 24f, 0xFFF4F7FB, Ui.displayBold(activity));
         header.addView(heading, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        ImageView close = Ui.icon(activity, R.drawable.ic_close, 20f, 0xFF8892A0);
+        ImageView close = Ui.icon(activity, R.drawable.ic_close, 22f, 0xFF8892A0);
         FrameLayout closeBox = new FrameLayout(activity);
         closeBox.setBackground(Ui.shape(0x14FFFFFF, 999f, activity, 0, 0));
-        closeBox.addView(close, new FrameLayout.LayoutParams(Ui.dp(activity, 20), Ui.dp(activity, 20), Gravity.CENTER));
+        closeBox.addView(close, new FrameLayout.LayoutParams(Ui.dp(activity, 22), Ui.dp(activity, 22), Gravity.CENTER));
         closeBox.setClickable(true);
         closeBox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,10 +67,10 @@ public final class AppPickerDialog {
         root.addView(header);
 
         final EditText search = new EditText(activity);
-        search.setHint("Cerca app");
+        search.setHint(activity.getString(R.string.search_apps));
         search.setHintTextColor(0xFF7E8797);
         search.setTextColor(0xFFE8EDF6);
-        search.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 18f);
+        search.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 19f);
         search.setSingleLine(true);
         search.setBackground(Ui.shape(0x0FFFFFFF, 14f, activity, 0x14FFFFFF, 1f));
         search.setPadding(Ui.dp(activity, 14), Ui.dp(activity, 11), Ui.dp(activity, 14), Ui.dp(activity, 11));
@@ -86,7 +86,7 @@ public final class AppPickerDialog {
         list.setBackgroundColor(0x00000000);
         list.setCacheColorHint(0x00000000);
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
-        int listHeight = Math.min(Ui.dp(activity, 430), (int) (metrics.heightPixels * 0.56f));
+        int listHeight = Math.min(Ui.dp(activity, 440), (int) (metrics.heightPixels * 0.56f));
         LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, listHeight);
         listLp.topMargin = Ui.dp(activity, 10);
@@ -115,7 +115,7 @@ public final class AppPickerDialog {
         Window window = dialog.getWindow();
         if (window != null) {
             window.setGravity(Gravity.CENTER);
-            window.setLayout(Math.min((int) (metrics.widthPixels * 0.92f), Ui.dp(activity, 620)),
+            window.setLayout(Math.min((int) (metrics.widthPixels * 0.92f), Ui.dp(activity, 640)),
                     ViewGroup.LayoutParams.WRAP_CONTENT);
         }
 
@@ -221,12 +221,12 @@ public final class AppPickerDialog {
 
                 ImageView icon = new ImageView(activity);
                 icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                row.addView(icon, new LinearLayout.LayoutParams(Ui.dp(activity, 46), Ui.dp(activity, 46)));
+                row.addView(icon, new LinearLayout.LayoutParams(Ui.dp(activity, 48), Ui.dp(activity, 48)));
 
                 LinearLayout column = new LinearLayout(activity);
                 column.setOrientation(LinearLayout.VERTICAL);
-                TextView title = Ui.text(activity, "", 19f, 0xFFF1F5FA, Ui.medium(activity));
-                TextView subtitle = Ui.text(activity, "", 12f, 0xFF858E9C, Ui.medium(activity));
+                TextView title = Ui.text(activity, "", 21f, 0xFFF1F5FA, Ui.medium(activity));
+                TextView subtitle = Ui.text(activity, "", 13f, 0xFF858E9C, Ui.medium(activity));
                 subtitle.setLetterSpacing(0.04f);
                 column.addView(title);
                 column.addView(subtitle);

@@ -47,26 +47,26 @@
 
   .app {
     position: relative; z-index: 1;
-    height: 100%; padding: 18px 22px 16px;
-    display: flex; flex-direction: column; gap: 16px;
+    height: 100%; padding: 14px 22px;
+    display: flex; flex-direction: column; gap: 14px;
   }
 
   /* ---------------- header ---------------- */
   header { display: flex; align-items: center; gap: 10px; }
-  .clock { font-weight: 700; font-size: 40px; line-height: .95; letter-spacing: .6px; }
-  .date { font-size: 14px; letter-spacing: 2px; color: var(--muted); margin-top: 3px; text-transform: uppercase; }
+  .clock { font-weight: 700; font-size: 54px; line-height: .9; letter-spacing: .5px; }
+  .date { font-size: 19px; letter-spacing: .8px; color: #9AA4B3; margin-left: 16px; }
   .spacer { flex: 1; }
 
   .chip {
     display: flex; align-items: center; gap: 9px;
     padding: 9px 16px; border-radius: 999px;
     background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
-    font-size: 15px; letter-spacing: 1.2px; color: #C6CEDA;
+    font-size: 16px; letter-spacing: 1.2px; color: #C6CEDA;
   }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent); }
 
   .round-btn {
-    width: 52px; height: 52px; border-radius: 50%;
+    width: 54px; height: 54px; border-radius: 50%;
     border: 1px solid rgba(255,255,255,.10);
     background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
     display: grid; place-items: center; cursor: pointer;
@@ -75,7 +75,7 @@
   }
   .round-btn:hover { background: rgba(255,255,255,.09); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .round-btn:active { transform: scale(.94); }
-  .round-btn svg { width: 24px; height: 24px; }
+  .round-btn svg { width: 28px; height: 28px; }
 
   /* ---------------- body ---------------- */
   main { flex: 1; display: grid; grid-template-columns: .36fr .64fr; gap: 18px; min-height: 0; }
@@ -87,8 +87,8 @@
   }
 
   .speed-card { display: flex; flex-direction: column; padding: 18px 18px 8px; }
-  .card-label { font-size: 14px; letter-spacing: 2px; color: #9AA3B2; font-weight: 600; }
-  .max { font-size: 14px; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
+  .card-label { font-size: 15px; letter-spacing: 2px; color: #9AA3B2; font-weight: 600; }
+  .max { font-size: 15px; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
   .card-head { display: flex; align-items: center; justify-content: space-between; }
   .gauge-wrap { flex: 1; display: grid; place-items: center; min-height: 0; position: relative; }
   .gauge { width: 100%; height: 100%; max-width: 300px; max-height: 300px; overflow: visible; }
@@ -109,10 +109,12 @@
   .unit { font-size: 12px; letter-spacing: 4px; color: var(--accent); font-weight: 600; margin-top: 10px; }
 
   .right { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
-  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 14px; flex: 1; min-height: 148px; }
+  .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 
   .tile {
-    display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 16px;
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    padding: 7px 6px; aspect-ratio: 1 / 1;
     border-radius: 22px; border: 1px solid var(--line);
     background: linear-gradient(180deg, #161B23, #10141A);
     cursor: pointer; transition: transform .14s ease, border-color .2s, box-shadow .25s;
@@ -121,20 +123,17 @@
   .tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 40%, transparent); box-shadow: 0 12px 30px -18px color-mix(in srgb, var(--accent) 80%, transparent); }
   .tile:active { transform: scale(.985); }
   .tile .icon-box {
-    width: 62px; height: 62px; border-radius: 20px; flex: 0 0 62px;
+    width: 46px; height: 46px; border-radius: 16px; flex: 0 0 46px;
     display: grid; place-items: center;
-    background: color-mix(in srgb, var(--accent) 16%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    background: #1A2029; border: 1px solid rgba(255,255,255,.12);
   }
-  .tile .icon-box svg { width: 32px; height: 32px; color: var(--accent); }
-  .tile .copy { min-width: 0; flex: 1; }
-  .tile .title { font-size: 20px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tile .sub { font-size: 14px; color: #9AA4B4; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tile .chev { display: grid; opacity: .4; flex: 0 0 16px; }
-  .tile .chev svg { width: 16px; height: 16px; }
+  .tile .icon-box svg { width: 30px; height: 30px; }
+  .tile .copy { min-width: 0; width: 100%; text-align: center; }
+  .tile .title { font-size: 18.5px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .sub { font-size: 12.5px; color: #9AA4B4; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .bars { display: flex; align-items: flex-end; gap: 4px; height: 26px; flex: 0 0 30px; }
-  .bars i { width: 5px; height: 100%; border-radius: 3px; background: var(--accent); transform-origin: bottom; animation: eq 1.05s ease-in-out infinite; }
+  .bars { position: absolute; top: 9px; right: 9px; display: flex; align-items: flex-end; gap: 3px; height: 20px; }
+  .bars i { width: 4px; height: 100%; border-radius: 3px; background: var(--accent); transform-origin: bottom; animation: eq 1.05s ease-in-out infinite; }
   .bars i:nth-child(1) { animation-delay: -.15s; }
   .bars i:nth-child(2) { animation-delay: -.45s; }
   .bars i:nth-child(3) { animation-delay: -.75s; }
@@ -147,41 +146,40 @@
     border-color: rgba(255,255,255,.25);
     box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--accent) 95%, transparent);
   }
-  .tile.primary .icon-box { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.22); }
-  .tile.primary .icon-box svg { color: #fff; }
+  .tile.primary .icon-box { background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.24); }
   .tile.primary .sub { color: rgba(255,255,255,.8); }
-  .tile.primary .chev { opacity: .55; }
 
-  .fav { flex: 0 0 214px; padding: 16px 16px 12px; display: flex; flex-direction: column; }
+  .fav { flex: 1; padding: 16px 16px 12px; display: flex; flex-direction: column; min-height: 0; }
   .fav-head { display: flex; align-items: center; justify-content: space-between; }
-  .fav-head .edit { font-size: 16px; color: var(--accent); cursor: pointer; padding: 2px 6px; border-radius: 8px; }
+  .fav-head .edit { font-size: 18px; color: var(--accent); cursor: pointer; padding: 2px 6px; border-radius: 8px; }
   .fav-head .edit:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-  .fav-row { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 6px; min-height: 0; }
+  .fav-row { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 6px; min-height: 0; margin-top: 6px; }
   .fav-cell {
-    display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; min-width: 0;
-    padding: 0 10px; border-radius: 15px;
+    display: flex; flex-direction: row; align-items: center; gap: 12px; cursor: pointer; min-width: 0;
+    padding: 0 12px; border-radius: 16px;
     background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.09);
     transition: transform .14s ease, border-color .2s;
   }
   .fav-cell:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .fav-cell:hover .fav-box { transform: translateY(-2px); }
-  .fav-box { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 30px; }
-  .fav-box svg { width: 30px; height: 30px; color: #C9D2E0; }
-  .fav-box.add { width: 24px; height: 24px; flex: 0 0 24px; }
+  .fav-box { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 34px; }
+  .fav-box svg { width: 34px; height: 34px; }
+  .fav-box.add { width: 26px; height: 26px; flex: 0 0 26px; }
   .fav-box.add svg { color: var(--accent); }
   .fav-cell.add { background: color-mix(in srgb, var(--accent) 13%, transparent); border-color: color-mix(in srgb, var(--accent) 42%, transparent); }
-  .fav-name { font-size: 17px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fav-name { font-size: 19px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fav-name.accent { color: color-mix(in srgb, var(--accent) 80%, white); }
 
-  /* ---------------- theme sheet ---------------- */
+  /* ---------------- settings sheet ---------------- */
   .sheet-backdrop {
     position: fixed; inset: 0; z-index: 10; display: none;
     background: rgba(4,5,7,.72); backdrop-filter: blur(3px);
-    place-items: center; padding: 20px;
+    place-items: center; padding: 16px;
   }
   .sheet-backdrop.open { display: grid; }
   .sheet {
-    width: min(540px, 100%); border-radius: 26px; padding: 20px 22px;
+    width: min(560px, 100%); border-radius: 26px; padding: 15px 22px 13px;
+    max-height: calc(100vh - 32px); overflow: auto;
     border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
     background: linear-gradient(180deg, #10141A, #0B0E13);
     box-shadow: 0 30px 80px -30px #000;
@@ -189,27 +187,31 @@
   }
   @keyframes pop { from { transform: scale(.97); opacity: .4; } to { transform: scale(1); opacity: 1; } }
   .sheet-head { display: flex; align-items: flex-start; }
-  .sheet-title { font-size: 24px; font-weight: 700; }
-  .sheet-sub { font-size: 14px; color: #8B94A2; margin-top: 2px; }
-  .close { width: 44px; height: 44px; margin-left: auto; border-radius: 50%; background: rgba(255,255,255,.08); display: grid; place-items: center; cursor: pointer; border: 0; }
-  .close svg { width: 20px; height: 20px; color: #8892A0; }
-  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; }
-  .swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 5px 0; cursor: pointer; border-radius: 14px; border: 0; background: transparent; }
-  .swatch .halo { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid transparent; transition: border-color .2s, background .2s; }
-  .swatch .halo i { width: 28px; height: 28px; border-radius: 50%; display: block; }
-  .swatch span { font-size: 12px; color: #8B94A2; }
+  .sheet-title { font-size: 25px; font-weight: 700; }
+  .sheet-sub { font-size: 15px; color: #8B94A2; margin-top: 2px; }
+  .close { width: 42px; height: 42px; margin-left: auto; border-radius: 50%; background: rgba(255,255,255,.08); display: grid; place-items: center; cursor: pointer; border: 0; }
+  .close svg { width: 22px; height: 22px; color: #8892A0; }
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 4px; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 3px 0 1px; cursor: pointer; border-radius: 14px; border: 0; background: transparent; }
+  .swatch .halo { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid transparent; transition: border-color .2s, background .2s; }
+  .swatch .halo i { width: 24px; height: 24px; border-radius: 50%; display: block; }
+  .swatch span { font-size: 12.5px; color: #8B94A2; }
   .swatch.active .halo { border-color: var(--swatch); background: color-mix(in srgb, var(--swatch) 16%, transparent); }
   .swatch.active span { color: #E9EEF7; }
-  .divider { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0 6px; }
-  .section { font-size: 13px; letter-spacing: 2px; color: #8B94A2; font-weight: 600; }
-  .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; }
-  .row .mini { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 13%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent); }
-  .row .mini svg { width: 22px; height: 22px; color: var(--accent); }
-  .row .name { flex: 1; font-size: 17px; }
-  .row .val { font-size: 15px; color: #B6BECC; }
+  .divider { height: 1px; background: rgba(255,255,255,.08); margin: 9px 0 3px; }
+  .section { font-size: 14px; letter-spacing: 2px; color: #8B94A2; font-weight: 600; margin-top: 4px; }
+  .lang-row { display: flex; align-items: center; gap: 8px; padding: 1px 0; }
+  .lang-row .name { flex: 1; font-size: 18px; }
+  .pill { font-size: 16px; font-weight: 700; padding: 6px 16px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: #C3CBD8; cursor: pointer; }
+  .pill.active { background: var(--accent); border-color: var(--accent); color: #10141A; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 4px 0; cursor: pointer; }
+  .row .mini { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: #1A2029; border: 1px solid rgba(255,255,255,.12); }
+  .row .mini svg { width: 22px; height: 22px; }
+  .row .name { flex: 1; font-size: 18px; }
+  .row .val { font-size: 16px; color: #B6BECC; }
   .row .chev { opacity: .35; display: grid; }
   .row .chev svg { width: 16px; height: 16px; }
-  .hint { font-size: 12.5px; color: #7C8492; margin-top: 10px; line-height: 1.5; }
+  .hint { font-size: 13px; color: #7C8492; margin-top: 7px; line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -217,20 +219,26 @@
 
 <div class="app">
   <header>
-    <div>
-      <div class="clock">09:41</div>
-      <div class="date">Domenica 22 novembre</div>
-    </div>
+    <div class="clock">09:41</div>
+    <div class="date">domenica 22 novembre</div>
     <div class="spacer"></div>
     <div class="chip"><span class="dot"></span>GPS ATTIVO</div>
     <button class="round-btn" id="themeBtn" title="Tema colore" aria-label="Tema colore">
-      <svg viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent)">
-        <path d="M12,3c-4.97,0 -9,4.03 -9,9s4.03,9 9,9c0.83,0 1.5,-0.67 1.5,-1.5 0,-0.39 -0.15,-0.74 -0.39,-1.01 -0.23,-0.26 -0.38,-0.61 -0.38,-0.99 0,-0.83 0.67,-1.5 1.5,-1.5H16c2.76,0 5,-2.24 5,-5 0,-4.42 -4.03,-8 -9,-8zM6.5,12c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,9 6.5,9 8,9.67 8,10.5 7.33,12 6.5,12zM9.5,8C8.67,8 8,7.33 8,6.5S8.67,5 9.5,5 11,5.67 11,6.5 10.33,8 9.5,8zM14.5,8c-0.83,0 -1.5,-0.67 -1.5,-1.5S13.67,5 14.5,5 16,5.67 16,6.5 15.33,8 14.5,8zM17.5,12c-0.83,0 -1.5,-0.67 -1.5,-1.5S16.67,9 17.5,9 19,9.67 19,10.5 18.33,12 17.5,12z"/>
+      <svg viewBox="0 0 24 24">
+        <path fill="#E8EDF6" d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10c0.83,0 1.5,-0.67 1.5,-1.5 0,-0.39 -0.15,-0.74 -0.39,-1.01 -0.23,-0.26 -0.38,-0.61 -0.38,-0.99 0,-0.83 0.67,-1.5 1.5,-1.5H16c3.31,0 6,-2.69 6,-6 0,-4.96 -4.48,-9 -10,-9z"/>
+        <circle cx="6.6" cy="12.4" r="1.4" fill="#FF5252"/>
+        <circle cx="9.4" cy="8.1" r="1.4" fill="#FFB74D"/>
+        <circle cx="14.2" cy="7.5" r="1.4" fill="#66BB6A"/>
+        <circle cx="17.7" cy="10.8" r="1.4" fill="#42A5F5"/>
+        <circle cx="7.6" cy="16.4" r="1.4" fill="#AB47BC"/>
       </svg>
     </button>
     <button class="round-btn" title="App" aria-label="App">
-      <svg viewBox="0 0 24 24" fill="#CBD3E0">
-        <path d="M4,8h4V4H4v4zM10,20h4v-4h-4v4zM4,20h4v-4H4v4zM4,14h4v-4H4v4zM10,14h4v-4h-4v4zM16,4v4h4V4h-4zM10,8h4V4h-4v4zM16,14h4v-4h-4v4zM16,20h4v-4h-4v4z"/>
+      <svg viewBox="0 0 24 24">
+        <rect x="2" y="3" width="10" height="10" rx="2.4" fill="#FF5252"/>
+        <rect x="12" y="3" width="10" height="10" rx="2.4" fill="#FFB74D"/>
+        <rect x="2" y="15" width="10" height="8" rx="2.4" fill="#66BB6A"/>
+        <rect x="12" y="15" width="10" height="8" rx="2.4" fill="#42A5F5"/>
       </svg>
     </button>
   </header>
@@ -259,41 +267,47 @@
       <div class="tiles">
         <div class="tile primary">
           <span class="icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2.5" y="10.5" width="19" height="9.5" rx="2.2"/>
-              <circle cx="9" cy="16.4" r="2"/>
-              <path d="M15 14.4h4M15 17.6h2.6M6.5 10.5 18 4.6"/>
+            <svg viewBox="0 0 24 24">
+              <path d="M7,8 L15,3.6" stroke="#FFB74D" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+              <rect x="2" y="8" width="20" height="10" rx="2" fill="#E53935"/>
+              <rect x="2.8" y="10.5" width="9.9" height="4" rx="1.2" fill="#FFCDD2"/>
+              <circle cx="17.6" cy="11.1" r="1.7" fill="#FFB74D"/>
+              <circle cx="17.6" cy="15.2" r="1.7" fill="#FFB74D"/>
             </svg>
           </span>
-          <div class="copy"><div class="title">Radio FM</div><div class="sub">Tocca per aprire la radio</div></div>
-          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+          <div class="copy"><div class="title">Radio FM</div><div class="sub">Ascolta la radio</div></div>
         </div>
 
         <div class="tile">
           <span class="icon-box">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg>
+            <svg viewBox="0 0 24 24"><path fill="#2196F3" d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg>
           </span>
-          <div class="copy"><div class="title">Musica Bluetooth</div><div class="sub">Spotify</div></div>
+          <div class="copy"><div class="title">Musica</div><div class="sub">Spotify</div></div>
           <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         </div>
 
         <div class="tile">
           <span class="icon-box">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/></svg>
+            <svg viewBox="0 0 24 24"><path fill="#B388FF" d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg>
           </span>
-          <div class="copy"><div class="title">Telefono</div><div class="sub">Chiama in vivavoce</div></div>
-          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+          <div class="copy"><div class="title">Musica 2</div><div class="sub">YouTube Music</div></div>
         </div>
 
         <div class="tile">
           <span class="icon-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9"/>
-              <path d="M15.9 8.1 10.6 10.6 8.1 15.9 13.4 13.4z" fill="currentColor" stroke="none"/>
+            <svg viewBox="0 0 24 24"><path fill="#34C759" d="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/></svg>
+          </span>
+          <div class="copy"><div class="title">Telefono</div><div class="sub">Chiama in vivavoce</div></div>
+        </div>
+
+        <div class="tile">
+          <span class="icon-box">
+            <svg viewBox="0 0 24 24">
+              <path fill="#3D9BFF" d="M12,2L4.5,20.29l0.71,0.71L12,18l6.79,3 0.71,-0.71z"/>
+              <path fill="#BBDEFB" d="M12,6.4l4,10.1 -4,-1.8 -4,1.8z"/>
             </svg>
           </span>
           <div class="copy"><div class="title">Navigatore</div><div class="sub">Google Maps</div></div>
-          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
         </div>
       </div>
 
@@ -346,20 +360,31 @@
     </div>
     <div class="swatches" id="swatches"></div>
     <div class="divider"></div>
+    <div class="lang-row">
+      <span class="name">Lingua</span>
+      <button class="pill active">Italiano</button>
+      <button class="pill">English</button>
+    </div>
+    <div class="divider"></div>
     <div class="section">APP COLLEGATE</div>
     <div class="row">
-      <span class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10.5" width="19" height="9.5" rx="2.2"/><circle cx="9" cy="16.4" r="2"/><path d="M15 14.4h4M15 17.6h2.6M6.5 10.5 18 4.6"/></svg></span>
+      <span class="mini"><svg viewBox="0 0 24 24"><path d="M7,8 L15,3.6" stroke="#FFB74D" stroke-width="1.6" stroke-linecap="round" fill="none"/><rect x="2" y="8" width="20" height="10" rx="2" fill="#E53935"/><rect x="2.8" y="10.5" width="9.9" height="4" rx="1.2" fill="#FFCDD2"/><circle cx="17.6" cy="11.1" r="1.7" fill="#FFB74D"/><circle cx="17.6" cy="15.2" r="1.7" fill="#FFB74D"/></svg></span>
       <span class="name">App radio FM</span><span class="val">Automatica</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="row">
-      <span class="mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg></span>
+      <span class="mini"><svg viewBox="0 0 24 24"><path fill="#2196F3" d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg></span>
       <span class="name">App musica</span><span class="val">Automatica</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="row">
-      <span class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.9 8.1 10.6 10.6 8.1 15.9 13.4 13.4z" fill="currentColor" stroke="none"/></svg></span>
-      <span class="name">App navigatore</span><span class="val">Da scegliere</span>
+      <span class="mini"><svg viewBox="0 0 24 24"><path fill="#B388FF" d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg></span>
+      <span class="name">Seconda app musica</span><span class="val">Da scegliere</span>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+    </div>
+    <div class="row">
+      <span class="mini"><svg viewBox="0 0 24 24"><path fill="#3D9BFF" d="M12,2L4.5,20.29l0.71,0.71L12,18l6.79,3 0.71,-0.71z"/><path fill="#BBDEFB" d="M12,6.4l4,10.1 -4,-1.8 -4,1.8z"/></svg></span>
+      <span class="name">App navigatore</span><span class="val">Google Maps</span>
       <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </div>
     <div class="hint">Il tema si applica subito. Tieni premuto un tasto per scegliere l'app.</div>
