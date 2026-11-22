@@ -27,7 +27,8 @@ si guida.
 - **App in evidenza** — fino a 6 scorciatoie scelte da te. Tieni premuta una scorciatoia
   per sostituirla o rimuoverla.
 - **Orologio e data** — ora molto grande con accanto la data per esteso, per esempio
-  `domenica 22 novembre`.
+  `domenica 22 novembre`, e subito dopo le barre animate dell'equalizzatore. Dietro
+  l'orologio si muove un lieve fumo colorato che sale e si dissolve.
 - **Tema colore** — 11 accenti (Rosso, Corallo, Arancio, Ambra, Verde, Turchese, Blu,
   Indaco, Viola, Magenta, Ghiaccio). Il colore viene applicato a sfondo, tachimetro,
   bordi e card, e resta memorizzato.
@@ -35,7 +36,6 @@ si guida.
   (riga `Lingua`). Anche date e dialoghi seguono la lingua scelta.
 - **Tasti quadrati** — cinque tasti di pari dimensioni (Radio FM, Musica, Musica 2,
   Telefono, Navigatore) disposti in fila su schermo orizzontale e in griglia su verticale.
-  Mentre un brano è in riproduzione le barre animate compaiono sui tasti musicali.
 
 Tieni premuto un tasto (Radio, Musica, Musica 2, Navigatore) per cambiare l'app collegata
 senza passare dal pannello delle impostazioni.
@@ -44,7 +44,7 @@ senza passare dal pannello delle impostazioni.
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.2.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.3.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).
@@ -89,7 +89,8 @@ app/src/main/java/com/carlaunchercp/
   SpeedGaugeView.java    tachimetro disegnato su Canvas
   Speedometer.java       velocità GPS filtrata (fermo, isteresi, fix scaduto)
   TileView.java          tasto quadrato (icona colorata, titolo, sottotitolo)
-  EqualizerBarsView.java barre animate durante la riproduzione
+  EqualizerBarsView.java barre animate accanto a orologio e data
+  SmokeView.java         fumo animato che sale dietro l'orologio
   ThemePanel.java        pannello tema, lingua e app collegate
   AppPickerDialog.java   elenco app con ricerca
   LauncherActions.java   intent per radio, musica, telefono, navigazione

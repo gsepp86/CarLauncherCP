@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,12 +37,12 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private Prefs prefs;
     private ThemePalette theme;
     private Speedometer speedometer;
-    private AudioManager audioManager;
     private boolean landscape;
 
     private SpeedGaugeView gauge;
     private TextView clockView;
     private TextView dateView;
+    private EqualizerBarsView clockBars;
     private TextView gpsLabel;
     private View gpsDot;
     private TextView maxView;
@@ -63,15 +62,6 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         public void run() {
             updateClock();
             clockHandler.postDelayed(this, 10_000L);
-        }
-    };
-
-    private final Handler mediaHandler = new Handler(Looper.getMainLooper());
-    private final Runnable mediaTick = new Runnable() {
-        @Override
-        public void run() {
-            updatePlayback();
-            mediaHandler.postDelayed(this, 900L);
         }
     };
 
@@ -97,8 +87,6 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         refreshFavorites();
         refreshTileSubtitles();
         updateGpsChip();
-        updatePlayback();
-        mediaTick.run();
         clockTick.run();
         applyImmersive();
     }
@@ -108,7 +96,6 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         super.onPause();
         speedometer.stop();
         clockHandler.removeCallbacks(clockTick);
-        mediaHandler.removeCallbacks(mediaTick);
     }
 
     @Override
@@ -145,9 +132,10 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         rootFrame.addView(backdrop, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
+
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 14), Ui.dp(this, 22), Ui.dp(this, 14));
+        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 8), Ui.dp(this, 22), Ui.dp(this, 14));
         content.addView(buildHeader(), new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -183,7 +171,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                 ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        bodyLp.topMargin = Ui.dp(this, 14);
+        bodyLp.topMargin = Ui.dp(this, 10);
         content.addView(body, bodyLp);
 
         View contentRoot = content;
@@ -224,28 +212,43 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
 
-        LinearLayout clockRow = new LinearLayout(this);
-        clockRow.setOrientation(LinearLayout.HORIZONTAL);
-        clockRow.setGravity(Gravity.CENTER_VERTICAL);
         clockView = Ui.text(this, "--:--", 54f, 0xFFF7F9FC, Ui.displayBold(this));
         clockView.setLetterSpacing(0.01f);
-        clockRow.addView(clockView);
 
         dateView = Ui.text(this, "", 19f, 0xFF9AA4B3, Ui.medium(this));
         dateView.setLetterSpacing(0.04f);
+
+        clockBars = new EqualizerBarsView(this);
+        clockBars.setAccent(theme.accent);
+        clockBars.setRunning(true);
+        LinearLayout.LayoutParams barsLp = new LinearLayout.LayoutParams(
+                Ui.dp(this, 32), Ui.dp(this, 26));
+        barsLp.leftMargin = Ui.dp(this, 14);
+
         LinearLayout clockBlock = new LinearLayout(this);
         clockBlock.setOrientation(LinearLayout.VERTICAL);
-        clockBlock.addView(clockRow);
         if (landscape) {
+            LinearLayout clockRow = new LinearLayout(this);
+            clockRow.setOrientation(LinearLayout.HORIZONTAL);
+            clockRow.setGravity(Gravity.CENTER_VERTICAL);
+            clockRow.addView(clockView);
             LinearLayout.LayoutParams dateLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             dateLp.leftMargin = Ui.dp(this, 16);
             clockRow.addView(dateView, dateLp);
+            clockRow.addView(clockBars, barsLp);
+            clockBlock.addView(clockRow);
         } else {
-            LinearLayout.LayoutParams dateLp = new LinearLayout.LayoutParams(
+            clockBlock.addView(clockView);
+            LinearLayout dateRow = new LinearLayout(this);
+            dateRow.setOrientation(LinearLayout.HORIZONTAL);
+            dateRow.setGravity(Gravity.CENTER_VERTICAL);
+            dateRow.addView(dateView);
+            dateRow.addView(clockBars, barsLp);
+            LinearLayout.LayoutParams dateRowLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            dateLp.topMargin = Ui.dp(this, 2);
-            clockBlock.addView(dateView, dateLp);
+            dateRowLp.topMargin = Ui.dp(this, 2);
+            clockBlock.addView(dateRow, dateRowLp);
         }
         header.addView(clockBlock);
 
@@ -289,7 +292,16 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                         LauncherActions.launchComponent(this, component.flattenToString())));
         header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 54), Ui.dp(this, 54)));
 
-        return header;
+        // Haze drifting behind and just below the clock, so the header breathes.
+        FrameLayout zone = new FrameLayout(this);
+        SmokeView smoke = new SmokeView(this);
+        smoke.setTheme(theme);
+        zone.addView(smoke, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 94), Gravity.TOP));
+        zone.addView(header, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP));
+        return zone;
     }
 
     private View roundButton(int iconRes, int tint, View.OnClickListener listener) {
@@ -727,21 +739,6 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             navTile.setSubtitle(navSubtitle());
             LauncherActions.launchComponent(this, component.flattenToString());
         });
-    }
-
-    /** Shows the animated bars on both music shortcuts while audio is actually playing. */
-    private void updatePlayback() {
-        if (musicTile == null) return;
-        boolean playing = false;
-        try {
-            if (audioManager == null) {
-                audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-            }
-            playing = audioManager != null && audioManager.isMusicActive();
-        } catch (Exception ignored) {
-        }
-        musicTile.setPlaying(playing);
-        if (music2Tile != null) music2Tile.setPlaying(playing);
     }
 
     // ---------------------------------------------------------------------- GPS

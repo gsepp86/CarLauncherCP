@@ -16,7 +16,6 @@ public class TileView extends FrameLayout {
     private final ImageView iconView;
     private final TextView titleView;
     private final TextView subtitleView;
-    private final EqualizerBarsView bars;
 
     public TileView(Context context, ThemePalette theme, boolean primary) {
         super(context);
@@ -63,15 +62,6 @@ public class TileView extends FrameLayout {
         column.addView(subtitleView, subLp);
 
         addView(column, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
-        bars = new EqualizerBarsView(context);
-        bars.setAccent(primary ? 0xFFFFFFFF : theme.accent);
-        bars.setVisibility(GONE);
-        LayoutParams barsLp = new LayoutParams(Ui.dp(context, 26), Ui.dp(context, 20),
-                Gravity.TOP | Gravity.END);
-        barsLp.topMargin = Ui.dp(context, 9);
-        barsLp.rightMargin = Ui.dp(context, 9);
-        addView(bars, barsLp);
     }
 
     private Drawable background(boolean primary) {
@@ -92,11 +82,5 @@ public class TileView extends FrameLayout {
 
     public void setSubtitle(CharSequence subtitle) {
         subtitleView.setText(subtitle);
-    }
-
-    /** Shows animated level bars on the tile while a track is playing. */
-    public void setPlaying(boolean playing) {
-        bars.setRunning(playing);
-        bars.setVisibility(playing ? VISIBLE : GONE);
     }
 }

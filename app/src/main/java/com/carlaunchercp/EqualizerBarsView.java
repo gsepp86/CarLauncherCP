@@ -6,7 +6,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.View;
 
-/** Small animated level bars: they dance on the music tile while a track is playing. */
+/** Small animated level bars: they dance next to the clock and date. */
 public class EqualizerBarsView extends View {
 
     private static final int BARS = 4;
@@ -32,6 +32,13 @@ public class EqualizerBarsView extends View {
         running = value;
         startedAt = System.nanoTime();
         invalidate();
+        if (running) postInvalidateOnAnimation();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        startedAt = System.nanoTime();
         if (running) postInvalidateOnAnimation();
     }
 
