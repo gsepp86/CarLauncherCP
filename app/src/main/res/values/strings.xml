@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Car Launcher CP</string>
+    <string name="tile_radio">Radio FM</string>
+    <string name="tile_radio_sub">Ascolta la radio</string>
+    <string name="tile_music">Musica Bluetooth</string>
+    <string name="tile_music_sub">Riproduci dal telefono</string>
+    <string name="tile_phone">Telefono</string>
+    <string name="tile_phone_sub">Chiama in vivavoce</string>
+    <string name="favorites">App in evidenza</string>
+    <string name="theme_title">Tema colore</string>
+</resources>

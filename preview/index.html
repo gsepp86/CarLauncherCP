@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Car Launcher CP · anteprima interfaccia</title>
+<style>
+  @font-face { font-family: "Rajdhani"; src: url("fonts/Rajdhani-Regular.ttf") format("truetype"); font-weight: 400; }
+  @font-face { font-family: "Rajdhani"; src: url("fonts/Rajdhani-Medium.ttf") format("truetype"); font-weight: 500; }
+  @font-face { font-family: "Rajdhani"; src: url("fonts/Rajdhani-SemiBold.ttf") format("truetype"); font-weight: 600; }
+  @font-face { font-family: "Rajdhani"; src: url("fonts/Rajdhani-Bold.ttf") format("truetype"); font-weight: 700; }
+
+  :root {
+    --accent: #FF3B30;
+    --muted: #8A93A2;
+    --text: #F4F7FB;
+    --line: rgba(255,255,255,.10);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Rajdhani", "Segoe UI", sans-serif;
+    background: #06070A;
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .backdrop {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(58% 78% at 4% -14%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 68%),
+      radial-gradient(52% 62% at 102% 108%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+      linear-gradient(122deg, #0A0C10 0%, #131A24 52%, #06070A 100%);
+    transition: background .35s ease;
+  }
+  .backdrop::after {
+    content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(58deg, rgba(255,255,255,.035) 0 1px, transparent 1px 74px);
+    mask-image: radial-gradient(120% 100% at 50% 40%, #000 40%, transparent 100%);
+  }
+  .backdrop::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 48%, rgba(0,0,0,.55) 100%);
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    height: 100%; padding: 18px 22px 16px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  /* ---------------- header ---------------- */
+  header { display: flex; align-items: center; gap: 10px; }
+  .clock { font-weight: 700; font-size: 33px; line-height: .95; letter-spacing: .6px; }
+  .date { font-size: 10.5px; letter-spacing: 2.6px; color: var(--muted); margin-top: 4px; text-transform: uppercase; }
+  .spacer { flex: 1; }
+
+  .chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 999px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+    font-size: 10.5px; letter-spacing: 1.5px; color: #C6CEDA;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent); }
+
+  .round-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    display: grid; place-items: center; cursor: pointer;
+    transition: transform .12s ease, background .2s ease, border-color .2s;
+    padding: 0;
+  }
+  .round-btn:hover { background: rgba(255,255,255,.09); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .round-btn:active { transform: scale(.94); }
+  .round-btn svg { width: 21px; height: 21px; }
+
+  /* ---------------- body ---------------- */
+  main { flex: 1; display: grid; grid-template-columns: .36fr .64fr; gap: 18px; min-height: 0; }
+
+  .card {
+    border-radius: 26px; border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(180deg, var(--card-top, #14181F), var(--card-bottom, #0D1015));
+    position: relative; overflow: hidden;
+  }
+
+  .speed-card { display: flex; flex-direction: column; padding: 18px 18px 8px; }
+  .card-label { font-size: 10px; letter-spacing: 2.4px; color: #8C95A4; font-weight: 600; }
+  .max { font-size: 10px; letter-spacing: 1.6px; color: var(--accent); font-weight: 700; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; }
+  .gauge-wrap { flex: 1; display: grid; place-items: center; min-height: 0; position: relative; }
+  .gauge { width: 100%; height: 100%; max-width: 300px; max-height: 300px; overflow: visible; }
+  .gauge .track { fill: none; stroke: rgba(255,255,255,.085); stroke-width: 13; stroke-linecap: round; }
+  .gauge .progress {
+    fill: none; stroke: var(--accent); stroke-width: 13; stroke-linecap: round;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 65%, transparent));
+    transition: stroke .3s ease;
+  }
+  .gauge .tick { stroke: rgba(255,255,255,.13); stroke-width: 3; stroke-linecap: round; }
+  .gauge .tick.on { stroke: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .gauge .ring { fill: none; stroke: rgba(255,255,255,.05); stroke-width: 1.5; }
+  .readout {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; pointer-events: none;
+  }
+  .value { font-size: clamp(56px, 9vw, 96px); font-weight: 700; line-height: .8; letter-spacing: -1px; }
+  .unit { font-size: 13px; letter-spacing: 4px; color: var(--accent); font-weight: 600; margin-top: 12px; }
+
+  .right { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; min-height: 148px; }
+
+  .tile {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 18px;
+    border-radius: 22px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, #161B23, #10141A);
+    cursor: pointer; transition: transform .14s ease, border-color .2s, box-shadow .25s;
+    min-width: 0;
+  }
+  .tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 40%, transparent); box-shadow: 0 12px 30px -18px color-mix(in srgb, var(--accent) 80%, transparent); }
+  .tile:active { transform: scale(.985); }
+  .tile .icon-box {
+    width: 72px; height: 72px; border-radius: 22px; flex: 0 0 72px;
+    display: grid; place-items: center;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .tile .icon-box svg { width: 34px; height: 34px; color: var(--accent); }
+  .tile .copy { min-width: 0; width: 100%; }
+  .tile .title { font-size: 20px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .sub { font-size: 11px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .chev { display: none; }
+
+  .tile.primary {
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 94%, white), color-mix(in srgb, var(--accent) 76%, black));
+    border-color: rgba(255,255,255,.25);
+    box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--accent) 95%, transparent);
+  }
+  .tile.primary .icon-box { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.22); }
+  .tile.primary .icon-box svg { color: #fff; }
+  .tile.primary .sub { color: rgba(255,255,255,.8); }
+  .tile.primary .chev { opacity: .55; }
+
+  .fav { flex: 0 0 204px; padding: 16px 16px 12px; display: flex; flex-direction: column; }
+  .fav-head { display: flex; align-items: center; justify-content: space-between; }
+  .fav-head .edit { font-size: 11.5px; color: var(--accent); cursor: pointer; padding: 2px 6px; border-radius: 8px; }
+  .fav-head .edit:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .fav-row { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 6px; min-height: 0; }
+  .fav-cell {
+    display: flex; flex-direction: row; align-items: center; gap: 10px; cursor: pointer; min-width: 0;
+    padding: 0 9px; border-radius: 15px;
+    background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.09);
+    transition: transform .14s ease, border-color .2s;
+  }
+  .fav-cell:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .fav-cell:hover .fav-box { transform: translateY(-2px); }
+  .fav-box { width: 25px; height: 25px; display: grid; place-items: center; flex: 0 0 25px; }
+  .fav-box svg { width: 25px; height: 25px; color: #C9D2E0; }
+  .fav-box.add { width: 20px; height: 20px; flex: 0 0 20px; }
+  .fav-box.add svg { color: var(--accent); }
+  .fav-cell.add { background: color-mix(in srgb, var(--accent) 13%, transparent); border-color: color-mix(in srgb, var(--accent) 42%, transparent); }
+  .fav-name { font-size: 13px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fav-name.accent { color: color-mix(in srgb, var(--accent) 80%, white); }
+
+  /* ---------------- theme sheet ---------------- */
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 10; display: none;
+    background: rgba(4,5,7,.72); backdrop-filter: blur(3px);
+    place-items: center; padding: 20px;
+  }
+  .sheet-backdrop.open { display: grid; }
+  .sheet {
+    width: min(540px, 100%); border-radius: 26px; padding: 20px 22px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    background: linear-gradient(180deg, #10141A, #0B0E13);
+    box-shadow: 0 30px 80px -30px #000;
+    animation: pop .18s ease-out;
+  }
+  @keyframes pop { from { transform: scale(.97); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+  .sheet-head { display: flex; align-items: flex-start; }
+  .sheet-title { font-size: 18px; font-weight: 700; }
+  .sheet-sub { font-size: 10.5px; color: #7F8896; margin-top: 2px; }
+  .close { width: 34px; height: 34px; margin-left: auto; border-radius: 50%; background: rgba(255,255,255,.08); display: grid; place-items: center; cursor: pointer; border: 0; }
+  .close svg { width: 16px; height: 16px; color: #8892A0; }
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 0 6px; cursor: pointer; border-radius: 14px; border: 0; background: transparent; }
+  .swatch .halo { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid transparent; transition: border-color .2s, background .2s; }
+  .swatch .halo i { width: 26px; height: 26px; border-radius: 50%; display: block; }
+  .swatch span { font-size: 9.5px; color: #8B94A2; }
+  .swatch.active .halo { border-color: var(--swatch); background: color-mix(in srgb, var(--swatch) 16%, transparent); }
+  .swatch.active span { color: #E9EEF7; }
+  .divider { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0 6px; }
+  .section { font-size: 9.5px; letter-spacing: 2.2px; color: #7F8896; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; cursor: pointer; }
+  .row .mini { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 13%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent); }
+  .row .mini svg { width: 17px; height: 17px; color: var(--accent); }
+  .row .name { flex: 1; font-size: 12.5px; }
+  .row .val { font-size: 11px; color: #B6BECC; }
+  .row .chev { opacity: .35; display: grid; }
+  .row .chev svg { width: 13px; height: 13px; }
+  .hint { font-size: 9.5px; color: #6C7482; margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+
+<div class="app">
+  <header>
+    <div>
+      <div class="clock">09:41</div>
+      <div class="date">Domenica 22 novembre</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="chip"><span class="dot"></span>GPS ATTIVO</div>
+    <button class="round-btn" id="themeBtn" title="Tema colore" aria-label="Tema colore">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent)">
+        <path d="M12,3c-4.97,0 -9,4.03 -9,9s4.03,9 9,9c0.83,0 1.5,-0.67 1.5,-1.5 0,-0.39 -0.15,-0.74 -0.39,-1.01 -0.23,-0.26 -0.38,-0.61 -0.38,-0.99 0,-0.83 0.67,-1.5 1.5,-1.5H16c2.76,0 5,-2.24 5,-5 0,-4.42 -4.03,-8 -9,-8zM6.5,12c-0.83,0 -1.5,-0.67 -1.5,-1.5S5.67,9 6.5,9 8,9.67 8,10.5 7.33,12 6.5,12zM9.5,8C8.67,8 8,7.33 8,6.5S8.67,5 9.5,5 11,5.67 11,6.5 10.33,8 9.5,8zM14.5,8c-0.83,0 -1.5,-0.67 -1.5,-1.5S13.67,5 14.5,5 16,5.67 16,6.5 15.33,8 14.5,8zM17.5,12c-0.83,0 -1.5,-0.67 -1.5,-1.5S16.67,9 17.5,9 19,9.67 19,10.5 18.33,12 17.5,12z"/>
+      </svg>
+    </button>
+    <button class="round-btn" title="App" aria-label="App">
+      <svg viewBox="0 0 24 24" fill="#CBD3E0">
+        <path d="M4,8h4V4H4v4zM10,20h4v-4h-4v4zM4,20h4v-4H4v4zM4,14h4v-4H4v4zM10,14h4v-4h-4v4zM16,4v4h4V4h-4zM10,8h4V4h-4v4zM16,14h4v-4h-4v4zM16,20h4v-4h-4v4z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="card speed-card">
+      <div class="card-head">
+        <span class="card-label">VELOCITÀ</span>
+        <span class="max">MAX 118</span>
+      </div>
+      <div class="gauge-wrap">
+        <svg class="gauge" viewBox="0 0 300 300" id="gauge">
+          <circle class="ring" cx="150" cy="150" r="70"></circle>
+          <circle class="track" cx="150" cy="150" r="108" transform="rotate(138 150 150)"></circle>
+          <circle class="progress" cx="150" cy="150" r="108" id="progress" transform="rotate(138 150 150)"></circle>
+          <g id="ticks"></g>
+        </svg>
+        <div class="readout">
+          <div class="value">74</div>
+          <div class="unit">KM/H</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="right">
+      <div class="tiles">
+        <div class="tile primary">
+          <span class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="10.5" width="19" height="9.5" rx="2.2"/>
+              <circle cx="9" cy="16.4" r="2"/>
+              <path d="M15 14.4h4M15 17.6h2.6M6.5 10.5 18 4.6"/>
+            </svg>
+          </span>
+          <div class="copy"><div class="title">Radio FM</div><div class="sub">Tocca per aprire la radio</div></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+
+        <div class="tile">
+          <span class="icon-box">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg>
+          </span>
+          <div class="copy"><div class="title">Musica Bluetooth</div><div class="sub">Riproduci dal telefono</div></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+
+        <div class="tile">
+          <span class="icon-box">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/></svg>
+          </span>
+          <div class="copy"><div class="title">Telefono</div><div class="sub">Chiama in vivavoce</div></div>
+          <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+        </div>
+      </div>
+
+      <div class="card fav">
+        <div class="fav-head">
+          <span class="card-label">APP IN EVIDENZA</span>
+          <span class="edit">Modifica</span>
+        </div>
+        <div class="fav-row">
+          <div class="fav-cell">
+            <span class="fav-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></span>
+            <span class="fav-name">Musica</span>
+          </div>
+          <div class="fav-cell">
+            <span class="fav-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.6-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.4-7 10-7 10z"/></svg></span>
+            <span class="fav-name">Naviga</span>
+          </div>
+          <div class="fav-cell">
+            <span class="fav-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.6 7.2L5 20l1-3.8A8 8 0 1121 12z"/></svg></span>
+            <span class="fav-name">Messaggi</span>
+          </div>
+          <div class="fav-cell">
+            <span class="fav-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="12" cy="12" r="3.4"/></svg></span>
+            <span class="fav-name">Camera</span>
+          </div>
+          <div class="fav-cell">
+            <span class="fav-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/></svg></span>
+            <span class="fav-name">Video</span>
+          </div>
+          <div class="fav-cell add">
+            <span class="fav-box add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span class="fav-name accent">Aggiungi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="sheet-backdrop" id="backdrop">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-title">Tema colore</div>
+        <div class="sheet-sub">Scegli l'accento dell'abitacolo</div>
+      </div>
+      <button class="close" id="closeBtn" aria-label="Chiudi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="swatches" id="swatches"></div>
+    <div class="divider"></div>
+    <div class="section">APP COLLEGATE</div>
+    <div class="row">
+      <span class="mini"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="10.5" width="19" height="9.5" rx="2.2"/><circle cx="9" cy="16.4" r="2"/><path d="M15 14.4h4M15 17.6h2.6M6.5 10.5 18 4.6"/></svg></span>
+      <span class="name">App radio FM</span><span class="val">Automatica</span>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+    </div>
+    <div class="row">
+      <span class="mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg></span>
+      <span class="name">App musica</span><span class="val">Automatica</span>
+      <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></span>
+    </div>
+    <div class="hint">Il tema si applica subito. Tieni premuta un'app in evidenza per sostituirla.</div>
+  </div>
+</div>
+
+<script>
+  const PALETTE = [
+    ["Rosso", "#FF3B30"], ["Corallo", "#FF5A3C"], ["Arancio", "#FF7A18"],
+    ["Ambra", "#FFB020"], ["Verde", "#3FDB86"], ["Turchese", "#1FC9C0"],
+    ["Blu", "#3D9BFF"], ["Indaco", "#7A6CFF"], ["Viola", "#BE5CFF"],
+    ["Magenta", "#FF4D93"], ["Ghiaccio", "#E6EDF7"]
+  ];
+
+  const swatches = document.getElementById("swatches");
+  PALETTE.forEach(([name, color], index) => {
+    const btn = document.createElement("button");
+    btn.className = "swatch" + (index === 0 ? " active" : "");
+    btn.innerHTML = `<span class="halo" style="--swatch:${color}"><i style="background:${color}"></i></span><span>${name}</span>`;
+    btn.onclick = () => {
+      document.documentElement.style.setProperty("--accent", color);
+      document.querySelectorAll(".swatch").forEach(s => s.classList.remove("active"));
+      btn.classList.add("active");
+    };
+    swatches.appendChild(btn);
+  });
+
+  const gauge = document.getElementById("gauge");
+  const progress = document.getElementById("progress");
+  const ticksGroup = document.getElementById("ticks");
+  const RADIUS = 108;
+  const CIRC = 2 * Math.PI * RADIUS;
+  const SWEEP_FRACTION = 264 / 360;
+  progress.setAttribute("stroke-dasharray", `${CIRC * SWEEP_FRACTION} ${CIRC}`);
+  progress.setAttribute("stroke-dashoffset", "0");
+
+  const ratio = Math.min(1, 74 / 180);
+  progress.style.strokeDasharray = `${CIRC * SWEEP_FRACTION * ratio} ${CIRC}`;
+
+  for (let i = 0; i <= 10; i++) {
+    const angle = (138 + (264 * i) / 10) * Math.PI / 180;
+    const on = i <= Math.round(ratio * 10);
+    const inner = on ? RADIUS + 10 : RADIUS + 9;
+    const outer = on ? RADIUS + 20 : RADIUS + 15;
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", 150 + Math.cos(angle) * inner);
+    line.setAttribute("y1", 150 + Math.sin(angle) * inner);
+    line.setAttribute("x2", 150 + Math.cos(angle) * outer);
+    line.setAttribute("y2", 150 + Math.sin(angle) * outer);
+    line.setAttribute("class", "tick" + (on ? " on" : ""));
+    ticksGroup.appendChild(line);
+  }
+
+  const backdrop = document.getElementById("backdrop");
+  document.getElementById("themeBtn").onclick = () => backdrop.classList.add("open");
+  document.getElementById("closeBtn").onclick = () => backdrop.classList.remove("open");
+  backdrop.addEventListener("click", e => { if (e.target === backdrop) backdrop.classList.remove("open"); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") backdrop.classList.remove("open"); });
+</script>
+</body>
+</html>

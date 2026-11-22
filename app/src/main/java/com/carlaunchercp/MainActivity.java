@@ -1,0 +1,672 @@
+package com.carlaunchercp;
+
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.GridLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+/** Car-optimised home screen: speed, radio, Bluetooth music, phone and favourite apps. */
+public class MainActivity extends Activity implements Speedometer.Listener {
+
+    private Prefs prefs;
+    private ThemePalette theme;
+    private Speedometer speedometer;
+    private boolean landscape;
+
+    private SpeedGaugeView gauge;
+    private TextView clockView;
+    private TextView dateView;
+    private TextView gpsLabel;
+    private View gpsDot;
+    private TextView maxView;
+    private GridLayout favoritesGrid;
+    private TileView radioTile;
+
+    private float maxSpeed = 0f;
+    private boolean hasFix = false;
+    private boolean permissionMissing = false;
+
+    private final Handler clockHandler = new Handler(Looper.getMainLooper());
+    private final Runnable clockTick = new Runnable() {
+        @Override
+        public void run() {
+            updateClock();
+            clockHandler.postDelayed(this, 10_000L);
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        prefs = new Prefs(this);
+        theme = ThemePalette.byId(prefs.themeId());
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        buildUi();
+        speedometer = new Speedometer(this, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        speedometer.start();
+        refreshFavorites();
+        updateGpsChip();
+        clockTick.run();
+        applyImmersive();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        speedometer.stop();
+        clockHandler.removeCallbacks(clockTick);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) applyImmersive();
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Home screen: back does nothing, as on every car launcher.
+    }
+
+    private void applyImmersive() {
+        View decor = getWindow().getDecorView();
+        decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    // ------------------------------------------------------------------ layout
+
+    private void buildUi() {
+        landscape = getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
+
+        FrameLayout rootFrame = new FrameLayout(this);
+        CarBackgroundView backdrop = new CarBackgroundView(this);
+        backdrop.setTheme(theme);
+        rootFrame.addView(backdrop, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 18), Ui.dp(this, 22), Ui.dp(this, 18));
+        content.addView(buildHeader(), new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+
+        LinearLayout.LayoutParams speedLp = landscape
+                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.36f)
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 236));
+        body.addView(buildSpeedCard(), speedLp);
+
+        LinearLayout right = new LinearLayout(this);
+        right.setOrientation(LinearLayout.VERTICAL);
+        right.addView(buildTiles(landscape), new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
+                landscape ? 1f : 0f));
+
+        LinearLayout.LayoutParams favoritesLp = landscape
+                ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 190))
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        favoritesLp.topMargin = Ui.dp(this, 14);
+        right.addView(buildFavoritesCard(landscape), favoritesLp);
+
+        LinearLayout.LayoutParams rightLp = landscape
+                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.64f)
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (landscape) rightLp.leftMargin = Ui.dp(this, 18);
+        body.addView(right, rightLp);
+
+        LinearLayout.LayoutParams bodyLp = landscape
+                ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        bodyLp.topMargin = Ui.dp(this, 16);
+        content.addView(body, bodyLp);
+
+        View contentRoot = content;
+        if (!landscape) {
+            ScrollView scroll = new ScrollView(this);
+            scroll.setFillViewport(true);
+            scroll.setVerticalScrollBarEnabled(false);
+            scroll.addView(content, new ScrollView.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            contentRoot = scroll;
+        }
+        rootFrame.addView(contentRoot, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(rootFrame);
+
+        content.setAlpha(0f);
+        content.setTranslationY(Ui.dp(this, 10));
+        content.animate().alpha(1f).translationY(0f).setDuration(320).start();
+        updateClock();
+        updateGpsChip();
+    }
+
+    private View buildHeader() {
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+
+        LinearLayout clockBlock = new LinearLayout(this);
+        clockBlock.setOrientation(LinearLayout.VERTICAL);
+        clockView = Ui.text(this, "--:--", 30f, 0xFFF7F9FC, Ui.displayBold(this));
+        clockView.setLetterSpacing(0.02f);
+        dateView = Ui.text(this, "", 10.5f, 0xFF7E8797, Ui.medium(this));
+        dateView.setLetterSpacing(0.16f);
+        clockBlock.addView(clockView);
+        LinearLayout.LayoutParams dateLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dateLp.topMargin = Ui.dp(this, 2);
+        clockBlock.addView(dateView, dateLp);
+        header.addView(clockBlock);
+
+        View spacer = new View(this);
+        header.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
+
+        LinearLayout gpsChip = new LinearLayout(this);
+        gpsChip.setOrientation(LinearLayout.HORIZONTAL);
+        gpsChip.setGravity(Gravity.CENTER_VERTICAL);
+        gpsChip.setPadding(Ui.dp(this, 12), Ui.dp(this, 7), Ui.dp(this, 14), Ui.dp(this, 7));
+        gpsChip.setBackground(Ui.shape(0x0DFFFFFF, 999f, this, 0x16FFFFFF, 1f));
+        gpsChip.setClickable(true);
+        gpsChip.setOnClickListener(v -> handleGpsChipClick());
+
+        gpsDot = new View(this);
+        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(Ui.dp(this, 7), Ui.dp(this, 7));
+        dotLp.rightMargin = Ui.dp(this, 8);
+        gpsDot.setBackground(Ui.oval(0xFF8A93A2, this, 0, 0));
+        gpsChip.addView(gpsDot, dotLp);
+
+        gpsLabel = Ui.text(this, "GPS", 10.5f, 0xFFB9C2D0, Ui.display(this));
+        gpsLabel.setLetterSpacing(0.14f);
+        gpsChip.addView(gpsLabel);
+
+        LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        chipLp.rightMargin = Ui.dp(this, 12);
+        header.addView(gpsChip, chipLp);
+
+        View themeButton = roundButton(R.drawable.ic_palette, theme.accent, v ->
+                ThemePanel.show(this, theme, palette -> {
+                    prefs.setThemeId(palette.id);
+                    recreate();
+                }));
+        LinearLayout.LayoutParams themeLp = new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44));
+        themeLp.rightMargin = Ui.dp(this, 10);
+        header.addView(themeButton, themeLp);
+
+        View appsButton = roundButton(R.drawable.ic_apps, 0xFFCBD3E0, v ->
+                AppPickerDialog.show(this, theme, "App", component ->
+                        LauncherActions.launchComponent(this, component.flattenToString())));
+        header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44)));
+
+        return header;
+    }
+
+    private View roundButton(int iconRes, int tint, View.OnClickListener listener) {
+        FrameLayout box = new FrameLayout(this);
+        box.setBackground(Ui.card(this, 0x14FFFFFF, 0x0AFFFFFF, 999f, 0x16FFFFFF,
+                theme.withAlpha(0x40)));
+        box.addView(Ui.icon(this, iconRes, 21f, tint),
+                new FrameLayout.LayoutParams(Ui.dp(this, 21), Ui.dp(this, 21), Gravity.CENTER));
+        box.setClickable(true);
+        box.setOnClickListener(listener);
+        Ui.pressScale(box);
+        return box;
+    }
+
+    private View buildSpeedCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        int pad = Ui.dp(this, 18);
+        card.setPadding(pad, pad, pad, Ui.dp(this, 8));
+        card.setBackground(Ui.card(this, 0xFF14181F, 0xFF0D1015, 26f, 0x1FFFFFFF, 0));
+
+        LinearLayout head = new LinearLayout(this);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView label = Ui.text(this, "VELOCITÀ", 10f, 0xFF8C95A4, Ui.displayBold(this));
+        label.setLetterSpacing(0.22f);
+        head.addView(label, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        maxView = Ui.text(this, "MAX 0", 10f, theme.accent, Ui.displayBold(this));
+        maxView.setLetterSpacing(0.14f);
+        head.addView(maxView);
+
+        card.addView(head);
+
+        gauge = new SpeedGaugeView(this);
+        gauge.setTheme(theme);
+        card.addView(gauge, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        return card;
+    }
+
+    private View buildTiles(boolean landscape) {
+        LinearLayout wrap = new LinearLayout(this);
+        wrap.setOrientation(landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+
+        radioTile = new TileView(this, theme, true, landscape);
+        radioTile.setData(R.drawable.ic_radio, getString(R.string.tile_radio), radioSubtitle());
+        radioTile.setOnClickListener(v -> openRadio());
+
+        TileView musicTile = new TileView(this, theme, false, landscape);
+        musicTile.setData(R.drawable.ic_bluetooth, getString(R.string.tile_music), musicSubtitle());
+        musicTile.setOnClickListener(v -> openMusic());
+
+        TileView phoneTile = new TileView(this, theme, false, landscape);
+        phoneTile.setData(R.drawable.ic_phone, getString(R.string.tile_phone),
+                getString(R.string.tile_phone_sub));
+        phoneTile.setOnClickListener(v -> LauncherActions.openDialer(this));
+
+        int gap = Ui.dp(this, 14);
+        if (landscape) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            wrap.addView(radioTile, lp);
+            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            lp2.leftMargin = gap;
+            wrap.addView(musicTile, lp2);
+            LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+            lp3.leftMargin = gap;
+            wrap.addView(phoneTile, lp3);
+        } else {
+            wrap.addView(radioTile, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88)));
+            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88));
+            lp2.topMargin = Ui.dp(this, 10);
+            wrap.addView(musicTile, lp2);
+            LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88));
+            lp3.topMargin = Ui.dp(this, 10);
+            wrap.addView(phoneTile, lp3);
+        }
+        return wrap;
+    }
+
+    private View buildFavoritesCard(boolean landscape) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        int pad = Ui.dp(this, 16);
+        card.setPadding(pad, pad, pad, Ui.dp(this, 12));
+        card.setBackground(Ui.card(this, 0xFF12161D, 0xFF0C0F14, 26f, 0x17FFFFFF, 0));
+
+        LinearLayout head = new LinearLayout(this);
+        head.setOrientation(LinearLayout.HORIZONTAL);
+        head.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView label = Ui.text(this, "APP IN EVIDENZA", 9.5f, 0xFF8C95A4, Ui.displayBold(this));
+        label.setLetterSpacing(0.22f);
+        head.addView(label, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView edit = Ui.text(this, "Modifica", 11.5f, theme.accent, Ui.display(this));
+        edit.setPadding(Ui.dp(this, 8), Ui.dp(this, 4), 0, Ui.dp(this, 4));
+        edit.setClickable(true);
+        edit.setOnClickListener(v -> addFavorite());
+        head.addView(edit);
+
+        card.addView(head);
+
+        favoritesGrid = new GridLayout(this);
+        favoritesGrid.setColumnCount(landscape ? 3 : 6);
+        LinearLayout.LayoutParams gridLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
+                landscape ? 1f : 0f);
+        gridLp.topMargin = Ui.dp(this, 6);
+        card.addView(favoritesGrid, gridLp);
+        return card;
+    }
+
+    // ------------------------------------------------------------- favourites
+
+    private void refreshFavorites() {
+        if (favoritesGrid == null) return;
+        favoritesGrid.removeAllViews();
+        List<String> favorites = prefs.favorites();
+        boolean showAdd = favorites.size() < Prefs.MAX_FAVORITES;
+        int cells = favorites.size() + (showAdd ? 1 : 0);
+        int columns = landscape ? 3 : 6;
+
+        for (String flattened : favorites) {
+            favoritesGrid.addView(landscape ? wideAppCell(flattened) : appColumnCell(flattened),
+                    gridCellParams());
+        }
+        if (showAdd) {
+            favoritesGrid.addView(addCell(), gridCellParams());
+        }
+        int remainder = cells % columns;
+        if (remainder != 0) {
+            for (int i = 0; i < columns - remainder; i++) {
+                favoritesGrid.addView(new View(this), gridCellParams());
+            }
+        }
+    }
+
+    private GridLayout.LayoutParams gridCellParams() {
+        GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+        lp.width = 0;
+        lp.height = landscape ? Ui.dp(this, 62) : ViewGroup.LayoutParams.WRAP_CONTENT;
+        lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
+        lp.setMargins(Ui.dp(this, 3), Ui.dp(this, 3), Ui.dp(this, 3), Ui.dp(this, 3));
+        return lp;
+    }
+
+    /** Landscape cell: icon and name on one line, like a dashboard shortcut. */
+    private View wideAppCell(final String flattened) {
+        LinearLayout cell = new LinearLayout(this);
+        cell.setOrientation(LinearLayout.HORIZONTAL);
+        cell.setGravity(Gravity.CENTER_VERTICAL);
+        cell.setPadding(Ui.dp(this, 9), 0, Ui.dp(this, 9), 0);
+        cell.setBackground(Ui.card(this, 0x0FFFFFFF, 0x08FFFFFF, 15f, 0x16FFFFFF,
+                theme.withAlpha(0x2A)));
+
+        ImageView icon = new ImageView(this);
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        try {
+            icon.setImageDrawable(getPackageManager()
+                    .getApplicationIcon(packageOf(flattened)));
+        } catch (Exception e) {
+            icon.setImageResource(R.drawable.ic_apps);
+            icon.setImageTintList(ColorStateList.valueOf(0xFF8C95A4));
+        }
+        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 25), Ui.dp(this, 25)));
+
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 13f,
+                0xFFDCE3EE, Ui.medium(this));
+        label.setSingleLine(true);
+        label.setEllipsize(TextUtils.TruncateAt.END);
+        LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        labelLp.leftMargin = Ui.dp(this, 10);
+        cell.addView(label, labelLp);
+
+        cell.setClickable(true);
+        cell.setOnClickListener(v -> LauncherActions.launchComponent(this, flattened));
+        cell.setOnLongClickListener(v -> {
+            showFavoriteMenu(flattened);
+            return true;
+        });
+        Ui.pressScale(cell);
+        return cell;
+    }
+
+    /** Portrait cell: icon above the name. */
+    private View appColumnCell(final String flattened) {
+        LinearLayout cell = new LinearLayout(this);
+        cell.setOrientation(LinearLayout.VERTICAL);
+        cell.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        int boxSize = Ui.dp(this, 52);
+        FrameLayout box = new FrameLayout(this);
+        box.setBackground(Ui.shape(0x12FFFFFF, 16f, this, 0x1AFFFFFF, 1f));
+        ImageView icon = new ImageView(this);
+        icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        try {
+            icon.setImageDrawable(getPackageManager().getApplicationIcon(packageOf(flattened)));
+        } catch (Exception e) {
+            icon.setImageResource(R.drawable.ic_apps);
+            icon.setImageTintList(ColorStateList.valueOf(0xFF8C95A4));
+        }
+        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 30), Gravity.CENTER));
+        cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
+
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 10.5f,
+                0xFFAEB6C4, Ui.medium(this));
+        label.setSingleLine(true);
+        label.setEllipsize(TextUtils.TruncateAt.END);
+        label.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelLp.topMargin = Ui.dp(this, 6);
+        cell.addView(label, labelLp);
+
+        cell.setClickable(true);
+        cell.setOnClickListener(v -> LauncherActions.launchComponent(this, flattened));
+        cell.setOnLongClickListener(v -> {
+            showFavoriteMenu(flattened);
+            return true;
+        });
+        Ui.pressScale(cell);
+        return cell;
+    }
+
+    private View addCell() {
+        if (landscape) {
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.HORIZONTAL);
+            cell.setGravity(Gravity.CENTER_VERTICAL);
+            cell.setPadding(Ui.dp(this, 9), 0, Ui.dp(this, 9), 0);
+            cell.setBackground(Ui.card(this, theme.withAlpha(0x1A), theme.withAlpha(0x0F), 15f,
+                    theme.withAlpha(0x4D), theme.withAlpha(0x30)));
+            cell.addView(Ui.icon(this, R.drawable.ic_add, 20f, theme.accent),
+                    new LinearLayout.LayoutParams(Ui.dp(this, 20), Ui.dp(this, 20)));
+            TextView label = Ui.text(this, "Aggiungi", 13f, theme.withAlpha(0xE6), Ui.medium(this));
+            LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            labelLp.leftMargin = Ui.dp(this, 10);
+            cell.addView(label, labelLp);
+            cell.setClickable(true);
+            cell.setOnClickListener(v -> addFavorite());
+            Ui.pressScale(cell);
+            return cell;
+        }
+
+        LinearLayout cell = new LinearLayout(this);
+        cell.setOrientation(LinearLayout.VERTICAL);
+        cell.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        int boxSize = Ui.dp(this, 52);
+        FrameLayout box = new FrameLayout(this);
+        box.setBackground(Ui.shape(theme.withAlpha(0x1A), 16f, this, theme.withAlpha(0x59), 1f));
+        box.addView(Ui.icon(this, R.drawable.ic_add, 22f, theme.accent),
+                new FrameLayout.LayoutParams(Ui.dp(this, 22), Ui.dp(this, 22), Gravity.CENTER));
+        cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
+
+        TextView label = Ui.text(this, "Aggiungi", 10.5f, theme.withAlpha(0xCC), Ui.medium(this));
+        label.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        labelLp.topMargin = Ui.dp(this, 6);
+        cell.addView(label, labelLp);
+
+        cell.setClickable(true);
+        cell.setOnClickListener(v -> addFavorite());
+        Ui.pressScale(cell);
+        return cell;
+    }
+
+    private void addFavorite() {
+        AppPickerDialog.show(this, theme, "Aggiungi app in evidenza", component -> {
+            prefs.addFavorite(component.flattenToString());
+            refreshFavorites();
+        });
+    }
+
+    private void showFavoriteMenu(final String flattened) {
+        final int index = prefs.favorites().indexOf(flattened);
+        new AlertDialog.Builder(this)
+                .setTitle(LauncherActions.appLabel(this, flattened))
+                .setItems(new String[]{"Sostituisci app", "Rimuovi dalla home"}, (dialog, which) -> {
+                    if (which == 0) {
+                        AppPickerDialog.show(this, theme, "Scegli app", component -> {
+                            prefs.replaceFavorite(index, component.flattenToString());
+                            refreshFavorites();
+                        });
+                    } else {
+                        prefs.removeFavorite(index);
+                        refreshFavorites();
+                    }
+                })
+                .show();
+    }
+
+    private String packageOf(String flattened) {
+        ComponentName component = ComponentName.unflattenFromString(flattened == null ? "" : flattened);
+        return component == null ? "" : component.getPackageName();
+    }
+
+    // ------------------------------------------------------------------ actions
+
+    private String radioSubtitle() {
+        String target = prefs.radioTarget();
+        if (target == null) return "Tocca per aprire la radio";
+        String label = LauncherActions.appLabel(this, target);
+        return label.isEmpty() ? "Tocca per aprire la radio" : label;
+    }
+
+    private String musicSubtitle() {
+        String target = prefs.musicTarget();
+        if (target == null) return getString(R.string.tile_music_sub);
+        String label = LauncherActions.appLabel(this, target);
+        return label.isEmpty() ? getString(R.string.tile_music_sub) : label;
+    }
+
+    private void openRadio() {
+        if (LauncherActions.openRadio(this, prefs)) {
+            radioTile.setSubtitle(radioSubtitle());
+            return;
+        }
+        AppPickerDialog.show(this, theme, "Scegli l'app radio", component -> {
+            prefs.setRadioTarget(component.flattenToString());
+            radioTile.setSubtitle(radioSubtitle());
+            LauncherActions.launchComponent(this, component.flattenToString());
+        });
+    }
+
+    private void openMusic() {
+        if (LauncherActions.openMusic(this, prefs)) return;
+        AppPickerDialog.show(this, theme, "Scegli l'app musica", component -> {
+            prefs.setMusicTarget(component.flattenToString());
+            LauncherActions.launchComponent(this, component.flattenToString());
+            recreate();
+        });
+    }
+
+    // ---------------------------------------------------------------------- GPS
+
+    private void updateGpsChip() {
+        if (gpsLabel == null) return;
+        if (permissionMissing) {
+            gpsLabel.setText("GPS OFF");
+            gpsLabel.setTextColor(0xFF97A0AE);
+            gpsDot.setBackground(Ui.oval(0xFF6D7685, this, 0, 0));
+        } else if (hasFix) {
+            gpsLabel.setText("GPS ATTIVO");
+            gpsLabel.setTextColor(0xFFE7EDF6);
+            gpsDot.setBackground(Ui.oval(theme.accent, this, 0, 0));
+        } else {
+            gpsLabel.setText("CERCO GPS");
+            gpsLabel.setTextColor(0xFF97A0AE);
+            gpsDot.setBackground(Ui.oval(0xFFB9A76B, this, 0, 0));
+        }
+    }
+
+    private void handleGpsChipClick() {
+        if (permissionMissing) {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + getPackageName()))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } else {
+            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        }
+    }
+
+    @Override
+    public void onSpeed(final float kmh, final boolean fix) {
+        runOnUiThread(() -> {
+            gauge.setHasFix(fix);
+            gauge.setValue(fix ? kmh : 0f);
+            if (fix != hasFix) {
+                hasFix = fix;
+                updateGpsChip();
+            }
+            if (fix && kmh > maxSpeed) {
+                maxSpeed = kmh;
+                maxView.setText("MAX " + Math.round(maxSpeed));
+            }
+        });
+    }
+
+    @Override
+    public void onGpsPermissionMissing() {
+        runOnUiThread(() -> {
+            permissionMissing = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED;
+            gauge.setHasFix(false);
+            gauge.setDimmed(permissionMissing);
+            updateGpsChip();
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != 41) return;
+        boolean granted = grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+        permissionMissing = !granted;
+        gauge.setDimmed(!granted);
+        updateGpsChip();
+        if (granted) speedometer.start();
+    }
+
+    // -------------------------------------------------------------------- clock
+
+    private void updateClock() {
+        Date now = new Date();
+        clockView.setText(new SimpleDateFormat("HH:mm", Locale.ITALY).format(now));
+        String date = new SimpleDateFormat("EEEE d MMMM", Locale.ITALY).format(now);
+        if (!date.isEmpty()) {
+            date = date.substring(0, 1).toUpperCase(Locale.ITALY) + date.substring(1);
+        }
+        dateView.setText(date.toUpperCase(Locale.ITALY));
+    }
+}
