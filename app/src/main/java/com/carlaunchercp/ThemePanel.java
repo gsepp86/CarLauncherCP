@@ -40,21 +40,21 @@ public final class ThemePanel {
         header.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout titleBlock = new LinearLayout(activity);
         titleBlock.setOrientation(LinearLayout.VERTICAL);
-        TextView title = Ui.text(activity, "Tema colore", 18f, 0xFFF4F7FB, Ui.displayBold(activity));
-        TextView subtitle = Ui.text(activity, "Scegli l'accento dell'abitacolo", 10.5f,
-                0xFF7F8896, Ui.medium(activity));
+        TextView title = Ui.text(activity, "Tema colore", 24f, 0xFFF4F7FB, Ui.displayBold(activity));
+        TextView subtitle = Ui.text(activity, "Scegli l'accento dell'abitacolo", 14f,
+                0xFF8B94A2, Ui.medium(activity));
         titleBlock.addView(title);
         titleBlock.addView(subtitle);
         header.addView(titleBlock, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        ImageView close = Ui.icon(activity, R.drawable.ic_close, 16f, 0xFF8892A0);
+        ImageView close = Ui.icon(activity, R.drawable.ic_close, 20f, 0xFF8892A0);
         LinearLayout closeBox = new LinearLayout(activity);
         closeBox.setBackground(Ui.shape(0x14FFFFFF, 999f, activity, 0, 0));
         closeBox.setGravity(Gravity.CENTER);
         closeBox.addView(close);
         closeBox.setClickable(true);
         closeBox.setOnClickListener(v -> dialog.dismiss());
-        header.addView(closeBox, new LinearLayout.LayoutParams(Ui.dp(activity, 34), Ui.dp(activity, 34)));
+        header.addView(closeBox, new LinearLayout.LayoutParams(Ui.dp(activity, 44), Ui.dp(activity, 44)));
         root.addView(header);
 
         GridLayout grid = new GridLayout(activity);
@@ -69,7 +69,7 @@ public final class ThemePanel {
             LinearLayout cell = new LinearLayout(activity);
             cell.setOrientation(LinearLayout.VERTICAL);
             cell.setGravity(Gravity.CENTER_HORIZONTAL);
-            cell.setPadding(0, Ui.dp(activity, 8), 0, Ui.dp(activity, 6));
+            cell.setPadding(0, Ui.dp(activity, 5), 0, Ui.dp(activity, 4));
 
             LinearLayout halo = new LinearLayout(activity);
             halo.setGravity(Gravity.CENTER);
@@ -78,9 +78,9 @@ public final class ThemePanel {
             View swatch = new View(activity);
             swatch.setBackground(Ui.oval(palette.accent, activity, 0, 0));
             halo.addView(swatch, new LinearLayout.LayoutParams(Ui.dp(activity, 26), Ui.dp(activity, 26)));
-            cell.addView(halo, new LinearLayout.LayoutParams(Ui.dp(activity, 42), Ui.dp(activity, 42)));
+            cell.addView(halo, new LinearLayout.LayoutParams(Ui.dp(activity, 48), Ui.dp(activity, 48)));
 
-            TextView label = Ui.text(activity, palette.label, 9.5f,
+            TextView label = Ui.text(activity, palette.label, 12f,
                     selected ? 0xFFE9EEF7 : 0xFF8B94A2, Ui.medium(activity));
             label.setGravity(Gravity.CENTER);
             LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
@@ -104,14 +104,14 @@ public final class ThemePanel {
 
         root.addView(divider(activity));
 
-        TextView section = Ui.text(activity, "APP COLLEGATE", 9.5f, 0xFF7F8896, Ui.displayBold(activity));
+        TextView section = Ui.text(activity, "APP COLLEGATE", 13f, 0xFF8B94A2, Ui.displayBold(activity));
         section.setLetterSpacing(0.2f);
         LinearLayout.LayoutParams sectionLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         sectionLp.topMargin = Ui.dp(activity, 4);
         root.addView(section, sectionLp);
 
-        final TextView radioValue = Ui.text(activity, valueFor(activity, prefs.radioTarget()), 11f,
+        final TextView radioValue = Ui.text(activity, valueFor(activity, prefs.radioTarget()), 15f,
                 0xFFB6BECC, Ui.medium(activity));
         root.addView(row(activity, current, R.drawable.ic_radio, "App radio FM", radioValue,
                 v -> AppPickerDialog.show(activity, current, "Scegli l'app radio", component -> {
@@ -119,7 +119,7 @@ public final class ThemePanel {
                     radioValue.setText(valueFor(activity, prefs.radioTarget()));
                 })));
 
-        final TextView musicValue = Ui.text(activity, valueFor(activity, prefs.musicTarget()), 11f,
+        final TextView musicValue = Ui.text(activity, valueFor(activity, prefs.musicTarget()), 15f,
                 0xFFB6BECC, Ui.medium(activity));
         root.addView(row(activity, current, R.drawable.ic_bluetooth, "App musica", musicValue,
                 v -> AppPickerDialog.show(activity, current, "Scegli l'app musica", component -> {
@@ -127,8 +127,16 @@ public final class ThemePanel {
                     musicValue.setText(valueFor(activity, prefs.musicTarget()));
                 })));
 
-        TextView hint = Ui.text(activity, "Il tema si applica subito. Tieni premuta un'app in evidenza per sostituirla.",
-                9.5f, 0xFF6C7482, Ui.medium(activity));
+        final TextView navValue = Ui.text(activity, valueFor(activity, prefs.navTarget(), "Da scegliere"),
+                15f, 0xFFB6BECC, Ui.medium(activity));
+        root.addView(row(activity, current, R.drawable.ic_navigation, "App navigatore", navValue,
+                v -> AppPickerDialog.show(activity, current, "Scegli il navigatore", component -> {
+                    prefs.setNavTarget(component.flattenToString());
+                    navValue.setText(valueFor(activity, prefs.navTarget(), "Da scegliere"));
+                })));
+
+        TextView hint = Ui.text(activity, "Il tema si applica subito. Tieni premuto un tasto per scegliere l'app.",
+                12.5f, 0xFF7C8492, Ui.medium(activity));
         LinearLayout.LayoutParams hintLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         hintLp.topMargin = Ui.dp(activity, 12);
@@ -146,15 +154,19 @@ public final class ThemePanel {
         if (window != null) {
             DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
             window.setGravity(Gravity.CENTER);
-            window.setLayout(Math.min((int) (metrics.widthPixels * 0.94f), Ui.dp(activity, 540)),
+            window.setLayout(Math.min((int) (metrics.widthPixels * 0.94f), Ui.dp(activity, 640)),
                     ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
 
     private static String valueFor(Activity activity, String flattened) {
-        if (flattened == null) return "Automatica";
+        return valueFor(activity, flattened, "Automatica");
+    }
+
+    private static String valueFor(Activity activity, String flattened, String fallback) {
+        if (flattened == null) return fallback;
         String label = LauncherActions.appLabel(activity, flattened);
-        return label.isEmpty() ? "Automatica" : label;
+        return label.isEmpty() ? fallback : label;
     }
 
     private static View divider(Activity activity) {
@@ -173,22 +185,22 @@ public final class ThemePanel {
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(0, Ui.dp(activity, 10), 0, Ui.dp(activity, 10));
+        row.setPadding(0, Ui.dp(activity, 8), 0, Ui.dp(activity, 8));
         row.setClickable(true);
 
-        row.addView(Ui.iconBox(activity, iconRes, 34f, 17f, theme.withAlpha(0x1F),
-                theme.withAlpha(0x33), theme.accent, 11f));
+        row.addView(Ui.iconBox(activity, iconRes, 42f, 22f, theme.withAlpha(0x1F),
+                theme.withAlpha(0x33), theme.accent, 12f));
 
-        TextView title = Ui.text(activity, label, 12.5f, 0xFFE6EBF4, Ui.medium(activity));
+        TextView title = Ui.text(activity, label, 17f, 0xFFE6EBF4, Ui.medium(activity));
         LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         titleLp.leftMargin = Ui.dp(activity, 12);
         row.addView(title, titleLp);
         row.addView(value);
 
-        ImageView chevron = Ui.icon(activity, R.drawable.ic_chevron, 13f, 0x4DFFFFFF);
+        ImageView chevron = Ui.icon(activity, R.drawable.ic_chevron, 16f, 0x4DFFFFFF);
         LinearLayout.LayoutParams chevronLp = new LinearLayout.LayoutParams(
-                Ui.dp(activity, 13), Ui.dp(activity, 13));
+                Ui.dp(activity, 16), Ui.dp(activity, 16));
         chevronLp.leftMargin = Ui.dp(activity, 8);
         row.addView(chevron, chevronLp);
 

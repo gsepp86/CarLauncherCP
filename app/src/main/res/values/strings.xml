@@ -7,6 +7,8 @@
     <string name="tile_music_sub">Riproduci dal telefono</string>
     <string name="tile_phone">Telefono</string>
     <string name="tile_phone_sub">Chiama in vivavoce</string>
+    <string name="tile_nav">Navigatore</string>
+    <string name="tile_nav_sub">Scegli l\'app di navigazione</string>
     <string name="favorites">App in evidenza</string>
     <string name="theme_title">Tema colore</string>
 </resources>

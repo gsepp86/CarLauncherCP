@@ -27,6 +27,24 @@ public final class LauncherActions {
             "com.zqc.radio"
     };
 
+    /** Packages commonly used as turn-by-turn navigation on Android head units. */
+    private static final String[] NAV_PACKAGES = {
+            "com.google.android.apps.maps",
+            "com.waze",
+            "com.here.app.maps",
+            "com.tomtom.gplay.navapp",
+            "com.tomtom.navapp",
+            "com.sygic.aura",
+            "net.osmand.plus",
+            "com.mapfactor.navigator",
+            "ru.yandex.yandexnavi",
+            "com.navngo.igo.javaclient",
+            "com.navigon.navigator_select",
+            "com.huawei.maps.app",
+            "com.baidu.navi",
+            "com.autonavi.amapauto"
+    };
+
     private static final String[] MUSIC_PACKAGES = {
             "com.spotify.music",
             "com.google.android.music",
@@ -86,6 +104,35 @@ public final class LauncherActions {
         if (found != null) {
             prefs.setMusicTarget(found);
             return launchComponent(context, found);
+        }
+        return false;
+    }
+
+    /**
+     * Saved navigator first, then a known navigation package, then whatever the system
+     * advertises for {@code CATEGORY_APP_MAPS}. Remembers the app that was found.
+     */
+    public static boolean openNavigation(Context context, Prefs prefs) {
+        String saved = prefs.navTarget();
+        if (saved != null && launchComponent(context, saved)) return true;
+
+        String found = findFirstInstalled(context, NAV_PACKAGES);
+        if (found != null) {
+            prefs.setNavTarget(found);
+            return launchComponent(context, found);
+        }
+
+        Intent maps = new Intent(Intent.ACTION_MAIN);
+        maps.addCategory(Intent.CATEGORY_APP_MAPS);
+        maps.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        try {
+            ResolveInfo info = context.getPackageManager().resolveActivity(maps, 0);
+            if (info != null && info.activityInfo != null) {
+                prefs.setNavTarget(info.activityInfo.packageName + "/" + info.activityInfo.name);
+                context.startActivity(maps);
+                return true;
+            }
+        } catch (Exception ignored) {
         }
         return false;
     }

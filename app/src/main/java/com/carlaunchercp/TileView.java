@@ -10,73 +10,72 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Large tappable shortcut card (Radio FM, Musica Bluetooth, Telefono). */
+/** Large tappable shortcut card (Radio FM, Musica Bluetooth, Telefono, Navigatore). */
 public class TileView extends LinearLayout {
 
     private final ThemePalette theme;
     private final ImageView iconView;
     private final TextView titleView;
     private final TextView subtitleView;
+    private final EqualizerBarsView bars;
+    private final ImageView chevron;
 
-    /**
-     * @param stacked when true the card stacks icon over text and stretches in height
-     *                (landscape dashboard); otherwise icon and text sit side by side.
-     */
-    public TileView(Context context, ThemePalette theme, boolean primary, boolean stacked) {
+    public TileView(Context context, ThemePalette theme, boolean primary) {
         super(context);
         this.theme = theme;
 
-        setOrientation(stacked ? VERTICAL : HORIZONTAL);
+        setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER_VERTICAL);
         setClickable(true);
         setFocusable(true);
-        int pad = Ui.dp(context, stacked ? 18 : 16);
-        setPadding(pad, pad, pad, pad);
+        setPadding(Ui.dp(context, 16), Ui.dp(context, 14), Ui.dp(context, 16), Ui.dp(context, 14));
         setBackground(background(primary));
         Ui.pressScale(this);
 
-        int boxSize = Ui.dp(context, stacked ? 72 : 54);
+        int boxSize = Ui.dp(context, 62);
         FrameLayout box = new FrameLayout(context);
         box.setBackground(Ui.shape(primary ? 0x24FFFFFF : theme.withAlpha(0x26),
-                stacked ? 20f : 18f, context,
-                primary ? 0x33FFFFFF : theme.withAlpha(0x40), 1f));
+                20f, context, primary ? 0x33FFFFFF : theme.withAlpha(0x40), 1f));
         iconView = new ImageView(context);
         iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         iconView.setImageTintList(ColorStateList.valueOf(primary ? 0xFFFFFFFF : theme.accent));
-        int iconSize = Ui.dp(context, stacked ? 34 : 27);
+        int iconSize = Ui.dp(context, 32);
         box.addView(iconView, new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER));
         addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
         LinearLayout column = new LinearLayout(context);
         column.setOrientation(VERTICAL);
-        titleView = Ui.text(context, "", stacked ? 21f : 17f,
+        titleView = Ui.text(context, "", 20f,
                 primary ? 0xFFFFFFFF : 0xFFF3F6FB, Ui.displayBold(context));
         titleView.setSingleLine(true);
         titleView.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        subtitleView = Ui.text(context, "", stacked ? 11f : 10.5f,
-                primary ? 0xCCFFFFFF : 0xFF8A93A2, Ui.medium(context));
+        subtitleView = Ui.text(context, "", 14f,
+                primary ? 0xD9FFFFFF : 0xFF9AA4B4, Ui.medium(context));
         subtitleView.setSingleLine(true);
         subtitleView.setEllipsize(android.text.TextUtils.TruncateAt.END);
         column.addView(titleView, new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        subLp.topMargin = Ui.dp(context, 4);
+        subLp.topMargin = Ui.dp(context, 3);
         column.addView(subtitleView, subLp);
 
-        if (stacked) {
-            View spacer = new View(context);
-            addView(spacer, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, Ui.dp(context, 16)));
-            addView(column, new LinearLayout.LayoutParams(
-                    LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        } else {
-            LinearLayout.LayoutParams columnLp = new LinearLayout.LayoutParams(0,
-                    LayoutParams.WRAP_CONTENT, 1f);
-            columnLp.leftMargin = Ui.dp(context, 14);
-            addView(column, columnLp);
-            addView(Ui.icon(context, R.drawable.ic_chevron, 15f,
-                    primary ? 0x99FFFFFF : 0x3DFFFFFF));
-        }
+        LinearLayout.LayoutParams columnLp = new LinearLayout.LayoutParams(0,
+                LayoutParams.WRAP_CONTENT, 1f);
+        columnLp.leftMargin = Ui.dp(context, 12);
+        addView(column, columnLp);
+
+        FrameLayout indicator = new FrameLayout(context);
+        bars = new EqualizerBarsView(context);
+        bars.setAccent(primary ? 0xFFFFFFFF : theme.accent);
+        bars.setVisibility(GONE);
+        indicator.addView(bars, new FrameLayout.LayoutParams(
+                Ui.dp(context, 32), Ui.dp(context, 26), Gravity.CENTER));
+        chevron = Ui.icon(context, R.drawable.ic_chevron, 18f,
+                primary ? 0x99FFFFFF : 0x3DFFFFFF);
+        indicator.addView(chevron, new FrameLayout.LayoutParams(
+                Ui.dp(context, 18), Ui.dp(context, 18), Gravity.CENTER));
+        addView(indicator, new LinearLayout.LayoutParams(Ui.dp(context, 32), Ui.dp(context, 32)));
     }
 
     private Drawable background(boolean primary) {
@@ -96,5 +95,12 @@ public class TileView extends LinearLayout {
 
     public void setSubtitle(CharSequence subtitle) {
         subtitleView.setText(subtitle);
+    }
+
+    /** Swaps the chevron for animated level bars while a track is playing. */
+    public void setPlaying(boolean playing) {
+        bars.setRunning(playing);
+        bars.setVisibility(playing ? VISIBLE : GONE);
+        chevron.setVisibility(playing ? GONE : VISIBLE);
     }
 }

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,12 +31,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/** Car-optimised home screen: speed, radio, Bluetooth music, phone and favourite apps. */
+/** Car-optimised home screen: speed, radio, Bluetooth music, phone, navigation and favourites. */
 public class MainActivity extends Activity implements Speedometer.Listener {
 
     private Prefs prefs;
     private ThemePalette theme;
     private Speedometer speedometer;
+    private AudioManager audioManager;
     private boolean landscape;
 
     private SpeedGaugeView gauge;
@@ -46,6 +48,11 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private TextView maxView;
     private GridLayout favoritesGrid;
     private TileView radioTile;
+    private TileView musicTile;
+    private TileView navTile;
+
+    private int favoritesCardHeight;
+    private int favoriteCellHeight;
 
     private float maxSpeed = 0f;
     private boolean hasFix = false;
@@ -57,6 +64,15 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         public void run() {
             updateClock();
             clockHandler.postDelayed(this, 10_000L);
+        }
+    };
+
+    private final Handler mediaHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mediaTick = new Runnable() {
+        @Override
+        public void run() {
+            updatePlayback();
+            mediaHandler.postDelayed(this, 900L);
         }
     };
 
@@ -75,7 +91,10 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         super.onResume();
         speedometer.start();
         refreshFavorites();
+        refreshTileSubtitles();
         updateGpsChip();
+        updatePlayback();
+        mediaTick.run();
         clockTick.run();
         applyImmersive();
     }
@@ -85,6 +104,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         super.onPause();
         speedometer.stop();
         clockHandler.removeCallbacks(clockTick);
+        mediaHandler.removeCallbacks(mediaTick);
     }
 
     @Override
@@ -114,6 +134,15 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         landscape = getResources().getConfiguration().orientation
                 == Configuration.ORIENTATION_LANDSCAPE;
 
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        favoritesCardHeight = landscape
+                ? Math.min(Ui.dp(this, 214), Math.round(screenHeight * 0.36f))
+                : 0;
+        favoriteCellHeight = landscape
+                ? Math.max(Ui.dp(this, 56),
+                (favoritesCardHeight - Ui.dp(this, 58)) / 2 - Ui.dp(this, 6))
+                : ViewGroup.LayoutParams.WRAP_CONTENT;
+
         FrameLayout rootFrame = new FrameLayout(this);
         CarBackgroundView backdrop = new CarBackgroundView(this);
         backdrop.setTheme(theme);
@@ -122,7 +151,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 18), Ui.dp(this, 22), Ui.dp(this, 18));
+        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 16), Ui.dp(this, 22), Ui.dp(this, 16));
         content.addView(buildHeader(), new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -131,7 +160,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         LinearLayout.LayoutParams speedLp = landscape
                 ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.36f)
-                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 236));
+                : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 240));
         body.addView(buildSpeedCard(), speedLp);
 
         LinearLayout right = new LinearLayout(this);
@@ -142,7 +171,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                 landscape ? 1f : 0f));
 
         LinearLayout.LayoutParams favoritesLp = landscape
-                ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 190))
+                ? new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, favoritesCardHeight)
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         favoritesLp.topMargin = Ui.dp(this, 14);
@@ -189,10 +218,10 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         LinearLayout clockBlock = new LinearLayout(this);
         clockBlock.setOrientation(LinearLayout.VERTICAL);
-        clockView = Ui.text(this, "--:--", 30f, 0xFFF7F9FC, Ui.displayBold(this));
+        clockView = Ui.text(this, "--:--", 40f, 0xFFF7F9FC, Ui.displayBold(this));
         clockView.setLetterSpacing(0.02f);
-        dateView = Ui.text(this, "", 10.5f, 0xFF7E8797, Ui.medium(this));
-        dateView.setLetterSpacing(0.16f);
+        dateView = Ui.text(this, "", 14f, 0xFF8B94A3, Ui.medium(this));
+        dateView.setLetterSpacing(0.14f);
         clockBlock.addView(clockView);
         LinearLayout.LayoutParams dateLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -206,19 +235,19 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         LinearLayout gpsChip = new LinearLayout(this);
         gpsChip.setOrientation(LinearLayout.HORIZONTAL);
         gpsChip.setGravity(Gravity.CENTER_VERTICAL);
-        gpsChip.setPadding(Ui.dp(this, 12), Ui.dp(this, 7), Ui.dp(this, 14), Ui.dp(this, 7));
+        gpsChip.setPadding(Ui.dp(this, 14), Ui.dp(this, 9), Ui.dp(this, 16), Ui.dp(this, 9));
         gpsChip.setBackground(Ui.shape(0x0DFFFFFF, 999f, this, 0x16FFFFFF, 1f));
         gpsChip.setClickable(true);
         gpsChip.setOnClickListener(v -> handleGpsChipClick());
 
         gpsDot = new View(this);
-        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(Ui.dp(this, 7), Ui.dp(this, 7));
-        dotLp.rightMargin = Ui.dp(this, 8);
+        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(Ui.dp(this, 9), Ui.dp(this, 9));
+        dotLp.rightMargin = Ui.dp(this, 9);
         gpsDot.setBackground(Ui.oval(0xFF8A93A2, this, 0, 0));
         gpsChip.addView(gpsDot, dotLp);
 
-        gpsLabel = Ui.text(this, "GPS", 10.5f, 0xFFB9C2D0, Ui.display(this));
-        gpsLabel.setLetterSpacing(0.14f);
+        gpsLabel = Ui.text(this, "GPS", 15f, 0xFFB9C2D0, Ui.display(this));
+        gpsLabel.setLetterSpacing(0.12f);
         gpsChip.addView(gpsLabel);
 
         LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(
@@ -231,14 +260,14 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                     prefs.setThemeId(palette.id);
                     recreate();
                 }));
-        LinearLayout.LayoutParams themeLp = new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44));
+        LinearLayout.LayoutParams themeLp = new LinearLayout.LayoutParams(Ui.dp(this, 52), Ui.dp(this, 52));
         themeLp.rightMargin = Ui.dp(this, 10);
         header.addView(themeButton, themeLp);
 
         View appsButton = roundButton(R.drawable.ic_apps, 0xFFCBD3E0, v ->
                 AppPickerDialog.show(this, theme, "App", component ->
                         LauncherActions.launchComponent(this, component.flattenToString())));
-        header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 44), Ui.dp(this, 44)));
+        header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 52), Ui.dp(this, 52)));
 
         return header;
     }
@@ -247,8 +276,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         FrameLayout box = new FrameLayout(this);
         box.setBackground(Ui.card(this, 0x14FFFFFF, 0x0AFFFFFF, 999f, 0x16FFFFFF,
                 theme.withAlpha(0x40)));
-        box.addView(Ui.icon(this, iconRes, 21f, tint),
-                new FrameLayout.LayoutParams(Ui.dp(this, 21), Ui.dp(this, 21), Gravity.CENTER));
+        box.addView(Ui.icon(this, iconRes, 24f, tint),
+                new FrameLayout.LayoutParams(Ui.dp(this, 24), Ui.dp(this, 24), Gravity.CENTER));
         box.setClickable(true);
         box.setOnClickListener(listener);
         Ui.pressScale(box);
@@ -266,13 +295,13 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView label = Ui.text(this, "VELOCITÀ", 10f, 0xFF8C95A4, Ui.displayBold(this));
-        label.setLetterSpacing(0.22f);
+        TextView label = Ui.text(this, "VELOCITÀ", 14f, 0xFF9AA3B2, Ui.displayBold(this));
+        label.setLetterSpacing(0.18f);
         head.addView(label, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        maxView = Ui.text(this, "MAX 0", 10f, theme.accent, Ui.displayBold(this));
-        maxView.setLetterSpacing(0.14f);
+        maxView = Ui.text(this, "MAX 0", 14f, theme.accent, Ui.displayBold(this));
+        maxView.setLetterSpacing(0.1f);
         head.addView(maxView);
 
         card.addView(head);
@@ -285,48 +314,79 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     }
 
     private View buildTiles(boolean landscape) {
-        LinearLayout wrap = new LinearLayout(this);
-        wrap.setOrientation(landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
-
-        radioTile = new TileView(this, theme, true, landscape);
+        radioTile = new TileView(this, theme, true);
         radioTile.setData(R.drawable.ic_radio, getString(R.string.tile_radio), radioSubtitle());
         radioTile.setOnClickListener(v -> openRadio());
+        radioTile.setOnLongClickListener(v -> {
+            chooseRadioApp();
+            return true;
+        });
 
-        TileView musicTile = new TileView(this, theme, false, landscape);
+        musicTile = new TileView(this, theme, false);
         musicTile.setData(R.drawable.ic_bluetooth, getString(R.string.tile_music), musicSubtitle());
         musicTile.setOnClickListener(v -> openMusic());
+        musicTile.setOnLongClickListener(v -> {
+            chooseMusicApp();
+            return true;
+        });
 
-        TileView phoneTile = new TileView(this, theme, false, landscape);
+        TileView phoneTile = new TileView(this, theme, false);
         phoneTile.setData(R.drawable.ic_phone, getString(R.string.tile_phone),
                 getString(R.string.tile_phone_sub));
         phoneTile.setOnClickListener(v -> LauncherActions.openDialer(this));
 
-        int gap = Ui.dp(this, 14);
+        navTile = new TileView(this, theme, false);
+        navTile.setData(R.drawable.ic_navigation, getString(R.string.tile_nav), navSubtitle());
+        navTile.setOnClickListener(v -> openNavigation());
+        navTile.setOnLongClickListener(v -> {
+            chooseNavApp();
+            return true;
+        });
+
         if (landscape) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
+            LinearLayout stack = new LinearLayout(this);
+            stack.setOrientation(LinearLayout.VERTICAL);
+
+            LinearLayout first = tileRow();
+            first.addView(radioTile, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+            LinearLayout.LayoutParams musicLp = new LinearLayout.LayoutParams(0,
                     ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-            wrap.addView(radioTile, lp);
-            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0,
+            musicLp.leftMargin = Ui.dp(this, 14);
+            first.addView(musicTile, musicLp);
+            stack.addView(first, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+            LinearLayout second = tileRow();
+            second.addView(phoneTile, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+            LinearLayout.LayoutParams navLp = new LinearLayout.LayoutParams(0,
                     ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-            lp2.leftMargin = gap;
-            wrap.addView(musicTile, lp2);
-            LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(0,
-                    ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-            lp3.leftMargin = gap;
-            wrap.addView(phoneTile, lp3);
-        } else {
-            wrap.addView(radioTile, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88)));
-            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88));
-            lp2.topMargin = Ui.dp(this, 10);
-            wrap.addView(musicTile, lp2);
-            LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 88));
-            lp3.topMargin = Ui.dp(this, 10);
-            wrap.addView(phoneTile, lp3);
+            navLp.leftMargin = Ui.dp(this, 14);
+            second.addView(navTile, navLp);
+            LinearLayout.LayoutParams secondLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
+            secondLp.topMargin = Ui.dp(this, 14);
+            stack.addView(second, secondLp);
+            return stack;
         }
-        return wrap;
+
+        LinearLayout stack = new LinearLayout(this);
+        stack.setOrientation(LinearLayout.VERTICAL);
+        TileView[] tiles = {radioTile, musicTile, phoneTile, navTile};
+        for (int i = 0; i < tiles.length; i++) {
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 94));
+            if (i > 0) lp.topMargin = Ui.dp(this, 10);
+            stack.addView(tiles[i], lp);
+        }
+        return stack;
+    }
+
+    private LinearLayout tileRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        return row;
     }
 
     private View buildFavoritesCard(boolean landscape) {
@@ -340,13 +400,13 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView label = Ui.text(this, "APP IN EVIDENZA", 9.5f, 0xFF8C95A4, Ui.displayBold(this));
-        label.setLetterSpacing(0.22f);
+        TextView label = Ui.text(this, "APP IN EVIDENZA", 14f, 0xFF9AA3B2, Ui.displayBold(this));
+        label.setLetterSpacing(0.18f);
         head.addView(label, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        TextView edit = Ui.text(this, "Modifica", 11.5f, theme.accent, Ui.display(this));
-        edit.setPadding(Ui.dp(this, 8), Ui.dp(this, 4), 0, Ui.dp(this, 4));
+        TextView edit = Ui.text(this, "Modifica", 16f, theme.accent, Ui.display(this));
+        edit.setPadding(Ui.dp(this, 8), Ui.dp(this, 2), 0, Ui.dp(this, 2));
         edit.setClickable(true);
         edit.setOnClickListener(v -> addFavorite());
         head.addView(edit);
@@ -392,7 +452,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private GridLayout.LayoutParams gridCellParams() {
         GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
         lp.width = 0;
-        lp.height = landscape ? Ui.dp(this, 62) : ViewGroup.LayoutParams.WRAP_CONTENT;
+        lp.height = landscape ? favoriteCellHeight : ViewGroup.LayoutParams.WRAP_CONTENT;
         lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1, 1f);
         lp.setMargins(Ui.dp(this, 3), Ui.dp(this, 3), Ui.dp(this, 3), Ui.dp(this, 3));
         return lp;
@@ -403,7 +463,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         LinearLayout cell = new LinearLayout(this);
         cell.setOrientation(LinearLayout.HORIZONTAL);
         cell.setGravity(Gravity.CENTER_VERTICAL);
-        cell.setPadding(Ui.dp(this, 9), 0, Ui.dp(this, 9), 0);
+        cell.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 10), 0);
         cell.setBackground(Ui.card(this, 0x0FFFFFFF, 0x08FFFFFF, 15f, 0x16FFFFFF,
                 theme.withAlpha(0x2A)));
 
@@ -416,9 +476,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             icon.setImageResource(R.drawable.ic_apps);
             icon.setImageTintList(ColorStateList.valueOf(0xFF8C95A4));
         }
-        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 25), Ui.dp(this, 25)));
+        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 30)));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 13f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 17f,
                 0xFFDCE3EE, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -443,7 +503,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        int boxSize = Ui.dp(this, 52);
+        int boxSize = Ui.dp(this, 62);
         FrameLayout box = new FrameLayout(this);
         box.setBackground(Ui.shape(0x12FFFFFF, 16f, this, 0x1AFFFFFF, 1f));
         ImageView icon = new ImageView(this);
@@ -454,10 +514,10 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             icon.setImageResource(R.drawable.ic_apps);
             icon.setImageTintList(ColorStateList.valueOf(0xFF8C95A4));
         }
-        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 30), Ui.dp(this, 30), Gravity.CENTER));
+        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 36), Ui.dp(this, 36), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 10.5f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 13f,
                 0xFFAEB6C4, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -482,12 +542,12 @@ public class MainActivity extends Activity implements Speedometer.Listener {
             LinearLayout cell = new LinearLayout(this);
             cell.setOrientation(LinearLayout.HORIZONTAL);
             cell.setGravity(Gravity.CENTER_VERTICAL);
-            cell.setPadding(Ui.dp(this, 9), 0, Ui.dp(this, 9), 0);
+            cell.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 10), 0);
             cell.setBackground(Ui.card(this, theme.withAlpha(0x1A), theme.withAlpha(0x0F), 15f,
                     theme.withAlpha(0x4D), theme.withAlpha(0x30)));
-            cell.addView(Ui.icon(this, R.drawable.ic_add, 20f, theme.accent),
-                    new LinearLayout.LayoutParams(Ui.dp(this, 20), Ui.dp(this, 20)));
-            TextView label = Ui.text(this, "Aggiungi", 13f, theme.withAlpha(0xE6), Ui.medium(this));
+            cell.addView(Ui.icon(this, R.drawable.ic_add, 24f, theme.accent),
+                    new LinearLayout.LayoutParams(Ui.dp(this, 24), Ui.dp(this, 24)));
+            TextView label = Ui.text(this, "Aggiungi", 17f, theme.withAlpha(0xE6), Ui.medium(this));
             LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             labelLp.leftMargin = Ui.dp(this, 10);
@@ -502,14 +562,14 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        int boxSize = Ui.dp(this, 52);
+        int boxSize = Ui.dp(this, 62);
         FrameLayout box = new FrameLayout(this);
         box.setBackground(Ui.shape(theme.withAlpha(0x1A), 16f, this, theme.withAlpha(0x59), 1f));
-        box.addView(Ui.icon(this, R.drawable.ic_add, 22f, theme.accent),
-                new FrameLayout.LayoutParams(Ui.dp(this, 22), Ui.dp(this, 22), Gravity.CENTER));
+        box.addView(Ui.icon(this, R.drawable.ic_add, 26f, theme.accent),
+                new FrameLayout.LayoutParams(Ui.dp(this, 26), Ui.dp(this, 26), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
-        TextView label = Ui.text(this, "Aggiungi", 10.5f, theme.withAlpha(0xCC), Ui.medium(this));
+        TextView label = Ui.text(this, "Aggiungi", 13f, theme.withAlpha(0xCC), Ui.medium(this));
         label.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -568,25 +628,75 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         return label.isEmpty() ? getString(R.string.tile_music_sub) : label;
     }
 
+    private String navSubtitle() {
+        String target = prefs.navTarget();
+        if (target == null) return getString(R.string.tile_nav_sub);
+        String label = LauncherActions.appLabel(this, target);
+        return label.isEmpty() ? getString(R.string.tile_nav_sub) : label;
+    }
+
+    private void refreshTileSubtitles() {
+        if (radioTile != null) radioTile.setSubtitle(radioSubtitle());
+        if (musicTile != null) musicTile.setSubtitle(musicSubtitle());
+        if (navTile != null) navTile.setSubtitle(navSubtitle());
+    }
+
     private void openRadio() {
         if (LauncherActions.openRadio(this, prefs)) {
             radioTile.setSubtitle(radioSubtitle());
             return;
         }
+        chooseRadioApp();
+    }
+
+    private void chooseRadioApp() {
         AppPickerDialog.show(this, theme, "Scegli l'app radio", component -> {
             prefs.setRadioTarget(component.flattenToString());
             radioTile.setSubtitle(radioSubtitle());
-            LauncherActions.launchComponent(this, component.flattenToString());
         });
     }
 
     private void openMusic() {
         if (LauncherActions.openMusic(this, prefs)) return;
+        chooseMusicApp();
+    }
+
+    private void chooseMusicApp() {
         AppPickerDialog.show(this, theme, "Scegli l'app musica", component -> {
             prefs.setMusicTarget(component.flattenToString());
+            musicTile.setSubtitle(musicSubtitle());
             LauncherActions.launchComponent(this, component.flattenToString());
-            recreate();
         });
+    }
+
+    private void openNavigation() {
+        if (LauncherActions.openNavigation(this, prefs)) {
+            navTile.setSubtitle(navSubtitle());
+            return;
+        }
+        chooseNavApp();
+    }
+
+    private void chooseNavApp() {
+        AppPickerDialog.show(this, theme, "Scegli il navigatore", component -> {
+            prefs.setNavTarget(component.flattenToString());
+            navTile.setSubtitle(navSubtitle());
+            LauncherActions.launchComponent(this, component.flattenToString());
+        });
+    }
+
+    /** Shows the animated bars on the music tile while audio is actually playing. */
+    private void updatePlayback() {
+        if (musicTile == null) return;
+        boolean playing = false;
+        try {
+            if (audioManager == null) {
+                audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+            }
+            playing = audioManager != null && audioManager.isMusicActive();
+        } catch (Exception ignored) {
+        }
+        musicTile.setPlaying(playing);
     }
 
     // ---------------------------------------------------------------------- GPS

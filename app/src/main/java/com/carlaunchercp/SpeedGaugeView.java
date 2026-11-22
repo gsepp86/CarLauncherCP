@@ -124,11 +124,12 @@ public class SpeedGaugeView extends View {
         canvas.drawCircle(cx, cy, radius * 0.62f, ticks);
 
         String value = hasFix ? String.valueOf(Math.round(shown)) : "--";
-        digits.setTextSize(radius * 0.72f);
+        // Compact readout: the dashboard tiles carry the big text, the gauge stays balanced.
+        digits.setTextSize(radius * 0.5f);
         digits.setColor(dimmed ? 0xFF5C6473 : 0xFFF7FAFF);
-        canvas.drawText(value, cx, cy + radius * 0.16f, digits);
+        canvas.drawText(value, cx, cy + radius * 0.13f, digits);
 
-        unit.setTextSize(radius * 0.19f);
+        unit.setTextSize(radius * 0.17f);
         unit.setColor(theme.withAlpha(0xFF));
         canvas.drawText("KM/H", cx, cy + radius * 0.46f, unit);
     }

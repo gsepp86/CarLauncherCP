@@ -16,6 +16,7 @@ public final class Prefs {
     private static final String K_THEME = "theme_id";
     private static final String K_RADIO = "radio_component";
     private static final String K_MUSIC = "music_component";
+    private static final String K_NAV = "nav_component";
     private static final String K_FAVORITES = "favorites";
 
     private final SharedPreferences sp;
@@ -46,6 +47,14 @@ public final class Prefs {
 
     public void setMusicTarget(String flattened) {
         sp.edit().putString(K_MUSIC, flattened).apply();
+    }
+
+    public String navTarget() {
+        return sp.getString(K_NAV, null);
+    }
+
+    public void setNavTarget(String flattened) {
+        sp.edit().putString(K_NAV, flattened).apply();
     }
 
     public List<String> favorites() {
