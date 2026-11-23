@@ -28,10 +28,10 @@ public final class Speedometer implements LocationListener {
         void onGpsPermissionMissing();
     }
 
-    /** Parked: anything below this is GPS drift, so it is reported as 0 km/h. */
-    private static final float STOPPED_KMH = 3.5f;
+    /** Parked: up to 3 km/h is GPS drift, so it is reported as 0 km/h. */
+    private static final float STOPPED_KMH = 3f;
     /** Moving again: the bit of hysteresis that keeps the reading from flickering at a stop. */
-    private static final float MOVING_KMH = 5f;
+    private static final float MOVING_KMH = 4f;
     /** A car that produces no fix for this long is not moving as far as the gauge knows. */
     private static final long FIX_TIMEOUT_MS = 12_000L;
 

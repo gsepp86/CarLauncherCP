@@ -134,9 +134,12 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
 
+        // Slim animated band along the bottom edge: the body stops just above it.
+        int stripHeight = Ui.dp(this, landscape ? 48 : 62);
+
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 0), Ui.dp(this, 22), Ui.dp(this, 14));
+        content.setPadding(Ui.dp(this, 22), Ui.dp(this, 6), Ui.dp(this, 22), stripHeight + Ui.dp(this, 8));
         content.addView(buildHeader(), new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -186,6 +189,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         }
         rootFrame.addView(contentRoot, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        rootFrame.addView(buildBottomStrip(), new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, stripHeight, Gravity.BOTTOM));
         setContentView(rootFrame);
 
         content.setAlpha(0f);
@@ -202,7 +207,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         if (landscape) {
             int rightWidth = Math.round((screenWidth - Ui.dp(this, 44) - Ui.dp(this, 18)) * 0.64f);
             int cell = (rightWidth - gap * 4) / 5;
-            return Math.max(Ui.dp(this, 100), Math.min(cell, Ui.dp(this, 142)));
+            return Math.max(Ui.dp(this, 100), Math.min(cell, Ui.dp(this, 150)));
         }
         int cell = (screenWidth - Ui.dp(this, 44) - gap) / 2;
         return Math.max(Ui.dp(this, 110), cell);
@@ -213,17 +218,19 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
 
-        clockView = Ui.text(this, "--:--", 54f, 0xFFF7F9FC, Ui.displayBold(this));
+        clockView = Ui.text(this, "--:--", landscape ? 68f : 56f, 0xFFFFFFFF, Ui.displayBold(this));
         clockView.setLetterSpacing(0.01f);
+        clockView.setShadowLayer(Ui.dp(this, 10), 0f, Ui.dp(this, 2), 0xB3000000);
 
-        dateView = Ui.text(this, "", 19f, 0xFF9AA4B3, Ui.medium(this));
-        dateView.setLetterSpacing(0.04f);
+        dateView = Ui.text(this, "", landscape ? 24f : 19f, 0xFFE3EAF5, Ui.medium(this));
+        dateView.setLetterSpacing(0.02f);
+        dateView.setShadowLayer(Ui.dp(this, 8), 0f, Ui.dp(this, 2), 0xB3000000);
 
         clockBars = new EqualizerBarsView(this);
         clockBars.setAccent(theme.accent);
         clockBars.setRunning(true);
         LinearLayout.LayoutParams barsLp = new LinearLayout.LayoutParams(
-                Ui.dp(this, 32), Ui.dp(this, 26));
+                Ui.dp(this, 38), Ui.dp(this, 32));
         barsLp.leftMargin = Ui.dp(this, 14);
 
         LinearLayout clockBlock = new LinearLayout(this);
@@ -274,7 +281,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         gpsChip.setOrientation(LinearLayout.HORIZONTAL);
         gpsChip.setGravity(Gravity.CENTER_VERTICAL);
         gpsChip.setPadding(Ui.dp(this, 14), Ui.dp(this, 9), Ui.dp(this, 16), Ui.dp(this, 9));
-        gpsChip.setBackground(Ui.shape(0x0DFFFFFF, 999f, this, 0x16FFFFFF, 1f));
+        gpsChip.setBackground(Ui.shape(0x16FFFFFF, 999f, this, 0x2EFFFFFF, 1f));
         gpsChip.setClickable(true);
         gpsChip.setOnClickListener(v -> handleGpsChipClick());
 
@@ -284,8 +291,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         gpsDot.setBackground(Ui.oval(0xFF8A93A2, this, 0, 0));
         gpsChip.addView(gpsDot, dotLp);
 
-        gpsLabel = Ui.text(this, getString(R.string.gps), 16f, 0xFFB9C2D0, Ui.display(this));
-        gpsLabel.setLetterSpacing(0.12f);
+        gpsLabel = Ui.text(this, getString(R.string.gps), 18f, 0xFFEDF3FB, Ui.display(this));
+        gpsLabel.setLetterSpacing(0.1f);
         gpsChip.addView(gpsLabel);
 
         LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(
@@ -306,13 +313,13 @@ public class MainActivity extends Activity implements Speedometer.Listener {
                 AllAppsDialog.show(this, theme, getString(R.string.app_picker_title)));
         header.addView(appsButton, new LinearLayout.LayoutParams(Ui.dp(this, 54), Ui.dp(this, 54)));
 
-        // Thin accent streaks rising behind the header, back a touch so the clock still reads first.
-        int headerZone = Ui.dp(this, inlineTransport ? 96 : 124);
+        // Thin accent streaks rising behind the header. The band hugs the header itself, so on
+        // screen the top stays a slim bar and the body keeps the height.
         FrameLayout headerZoneBox = new FrameLayout(this);
         SmokeView headerSmoke = new SmokeView(this);
         headerSmoke.setTheme(theme);
         headerZoneBox.addView(headerSmoke, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, headerZone, Gravity.TOP));
+                ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, landscape ? 82 : 100), Gravity.TOP));
 
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -331,30 +338,28 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         headerZoneBox.addView(column, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP));
-        FrameLayout headerWrap = new FrameLayout(this);
-        headerWrap.addView(headerZoneBox, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        headerWrap.setAlpha(0.92f);
+        // Measure the header row and size the streak band to it, so no empty band sits below.
+        column.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int band = bottom - top + Ui.dp(this, 4);
+            ViewGroup.LayoutParams lp = headerSmoke.getLayoutParams();
+            if (lp.height != band) {
+                lp.height = band;
+                headerSmoke.setLayoutParams(lp);
+            }
+        });
+        return headerZoneBox;
+    }
 
-        // Same motion lower on the screen, so the body feels like one surface, not a cut-out.
-        LinearLayout bodyStrip = new LinearLayout(this);
-        bodyStrip.setOrientation(LinearLayout.HORIZONTAL);
-        bodyStrip.setGravity(Gravity.TOP);
+    /** Same streaks as the header, in a slim band along the bottom edge of the screen. */
+    private View buildBottomStrip() {
         SmokeView bodySmoke = new SmokeView(this);
         bodySmoke.setTheme(theme);
         bodySmoke.setAnchorBottom(true);
-        int bodyStripHeight = Ui.dp(this, landscape ? 64 : 84);
-        bodyStrip.addView(bodySmoke, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, bodyStripHeight, Gravity.TOP));
-        bodyStrip.setAlpha(0.9f);
-
-        LinearLayout outer = new LinearLayout(this);
-        outer.setOrientation(LinearLayout.VERTICAL);
-        outer.addView(headerWrap, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        outer.addView(bodyStrip, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, bodyStripHeight));
-        return outer;
+        FrameLayout strip = new FrameLayout(this);
+        strip.setAlpha(0.92f);
+        strip.addView(bodySmoke, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        return strip;
     }
 
     /** Back, play/pause and next: keys for whichever app owns the media session. */
@@ -438,13 +443,13 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView label = Ui.text(this, getString(R.string.speed_label), 15f, 0xFF9AA3B2,
+        TextView label = Ui.text(this, getString(R.string.speed_label), 16f, 0xFFBCC6D6,
                 Ui.displayBold(this));
         label.setLetterSpacing(0.18f);
         head.addView(label, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        maxView = Ui.text(this, getString(R.string.speed_max, 0), 15f, theme.accent,
+        maxView = Ui.text(this, getString(R.string.speed_max, 0), 16f, theme.accent,
                 Ui.displayBold(this));
         maxView.setLetterSpacing(0.1f);
         head.addView(maxView);
@@ -542,7 +547,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
 
-        TextView label = Ui.text(this, getString(R.string.favorites_title), 15f, 0xFF9AA3B2,
+        TextView label = Ui.text(this, getString(R.string.favorites_title), 16f, 0xFFBCC6D6,
                 Ui.displayBold(this));
         label.setLetterSpacing(0.18f);
         head.addView(label, new LinearLayout.LayoutParams(0,

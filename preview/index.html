@@ -52,14 +52,23 @@
   }
 
   /* thin accent streaks drifting up behind the header and along the bottom strip */
-  .head-zone { position: relative; padding-bottom: 14px; }
+  .head-zone { position: relative; padding-bottom: 10px; }
   .head-zone header { position: relative; z-index: 1; }
   .streaks { position: absolute; left: -22px; right: -22px; overflow: hidden; pointer-events: none; z-index: 0; }
   .head-zone .streaks {
-    top: -8px; height: 124px;
+    top: -8px; bottom: -4px;
     mask-image: linear-gradient(180deg, rgba(0,0,0,.35) 0%, #000 34%, #000 74%, transparent 100%);
   }
+  .head-zone .streaks i { --rise: -58px; }
+  .head-zone .streaks i:nth-child(9) { bottom: 46%; left: 8%; right: 55%; animation-delay: -2.1s; animation-duration: 7.6s; }
+  .head-zone .streaks i:nth-child(10) { bottom: 18%; left: 21%; right: 43%; animation-delay: -6.8s; animation-duration: 8.2s; }
+  .head-zone .streaks i:nth-child(11) { bottom: 62%; left: 44%; right: 26%; animation-delay: -3.9s; animation-duration: 7.1s; }
+  .head-zone .streaks i:nth-child(12) { bottom: 8%; left: 62%; right: 12%; animation-delay: -7.5s; animation-duration: 8.6s; }
+  .head-zone .streaks i:nth-child(13) { bottom: 70%; left: 15%; right: 62%; animation-delay: -5.7s; animation-duration: 7.9s; }
+  .head-zone .streaks i:nth-child(14) { bottom: 30%; left: 72%; right: 6%; animation-delay: -1.4s; animation-duration: 8.9s; }
+
   .streaks i {
+    --rise: -132px;
     position: absolute; height: 2.5px; border-radius: 999px; opacity: 0;
     background: linear-gradient(90deg, transparent,
       color-mix(in srgb, var(--accent) 72%, transparent) 16%,
@@ -81,27 +90,36 @@
     0% { transform: translateY(0) scaleX(.62); opacity: 0; }
     14% { opacity: .92; }
     72% { opacity: .5; }
-    100% { transform: translateY(-132px) scaleX(1.04); opacity: 0; }
+    100% { transform: translateY(var(--rise)) scaleX(1.04); opacity: 0; }
   }
 
   /* the same motion in a slim strip at the bottom, so the body closes with animation */
   .foot-strip {
-    position: relative; height: 72px; margin: 0 -22px -6px; overflow: hidden; pointer-events: none;
+    position: relative; height: 48px; margin: 0 -22px -14px; overflow: hidden; pointer-events: none;
     mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.6) 40%, #000 82%);
   }
   .foot-strip .streaks { inset: 0; }
+  .foot-strip .streaks i { --rise: -54px; animation-duration: 5.5s; }
+  .foot-strip .streaks i:nth-child(1) { bottom: 4%; }
+  .foot-strip .streaks i:nth-child(2) { bottom: 22%; }
+  .foot-strip .streaks i:nth-child(3) { bottom: 12%; }
+  .foot-strip .streaks i:nth-child(4) { bottom: 40%; }
+  .foot-strip .streaks i:nth-child(5) { bottom: 30%; }
+  .foot-strip .streaks i:nth-child(6) { bottom: 58%; }
+  .foot-strip .streaks i:nth-child(7) { bottom: 34%; }
+  .foot-strip .streaks i:nth-child(8) { bottom: 68%; }
 
   /* ---------------- header ---------------- */
   header { display: flex; align-items: center; gap: 10px; }
-  .clock { font-weight: 700; font-size: 54px; line-height: .9; letter-spacing: .5px; }
-  .date { font-size: 19px; letter-spacing: .8px; color: #9AA4B3; margin-left: 16px; }
+  .clock { font-weight: 700; font-size: 68px; line-height: .9; letter-spacing: .5px; text-shadow: 0 2px 12px rgba(0,0,0,.7); }
+  .date { font-size: 24px; letter-spacing: .4px; color: #E3EAF5; margin-left: 16px; text-shadow: 0 2px 10px rgba(0,0,0,.7); }
   .spacer { flex: 1; }
 
   .chip {
     display: flex; align-items: center; gap: 9px;
     padding: 9px 16px; border-radius: 999px;
-    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
-    font-size: 16px; letter-spacing: 1.2px; color: #C6CEDA;
+    background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.18);
+    font-size: 18px; letter-spacing: 1px; color: #EDF3FB;
   }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 70%, transparent); }
 
@@ -146,7 +164,7 @@
   }
 
   .speed-card { display: flex; flex-direction: column; padding: 18px 18px 8px; }
-  .card-label { font-size: 15px; letter-spacing: 2px; color: #9AA3B2; font-weight: 600; }
+  .card-label { font-size: 16px; letter-spacing: 2px; color: #BCC6D6; font-weight: 600; }
   .max { font-size: 15px; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
   .card-head { display: flex; align-items: center; justify-content: space-between; }
   .gauge-wrap { flex: 1; display: grid; place-items: center; min-height: 0; position: relative; }
@@ -326,10 +344,10 @@
 
 <div class="app">
   <div class="head-zone">
-  <div class="streaks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="streaks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <header>
-    <div class="clock">09:41</div>
-    <div class="date">domenica 22 novembre</div>
+    <div class="clock">07:14</div>
+    <div class="date">lunedì 23 novembre</div>
     <span class="hdr-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     <div class="spacer"></div>
     <div class="transport">

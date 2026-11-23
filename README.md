@@ -12,9 +12,9 @@ si guida.
 
 - **Velocità oraria** — tachimetro circolare con velocità GPS in km/h, velocità massima
   raggiunta e stato del fix (`GPS ATTIVO` / `CERCO GPS` / `GPS OFF`). A macchina ferma il
-  valore resta esattamente **0**: i falsi 1-2 km/h del GPS vengono filtrati con una soglia
-  di fermo e un'isteresi, e se il fix sparisce la velocità non resta congelata sull'ultimo
-  valore.
+  valore resta esattamente **0**: le oscillazioni del GPS fino a **3 km/h** vengono
+  filtrate con una soglia di fermo e un'isteresi, e se il fix sparisce la velocità non
+  resta congelata sull'ultimo valore.
 - **Radio FM** — apre l'app radio del tuo autoradio: viene cercata automaticamente fra i
   pacchetti più diffusi, altrimenti la scegli tu e la scelta viene ricordata.
 - **Musica BT** — apre la musica in streaming dal Bluetooth (app di sistema o quella che
@@ -28,11 +28,11 @@ si guida.
   stata scelta una viene rilevata automaticamente; la scelta resta memorizzata.
 - **App in evidenza** — fino a 6 scorciatoie scelte da te. Tieni premuta una scorciatoia
   per sostituirla o rimuoverla.
-- **Orologio e data** — ora molto grande con accanto la data per esteso, per esempio
-  `domenica 22 novembre`, e subito dopo le barre animate dell'equalizzatore. Dietro
-  l'orologio salgono sottili linee colorate che sfumano verso l'alto; la stessa animazione
-  chiude l'interfaccia in basso, in una banda sottile, così lo schermo respira da entrambi
-  i lati.
+- **Orologio e data** — ora bianca molto grande con accanto la data per esteso, per
+  esempio `domenica 22 novembre`, e subito dopo le barre animate dell'equalizzatore.
+  Dietro l'orologio salgono sottili linee colorate, su una banda che resta alta quanto
+  l'intestazione; la stessa animazione chiude l'interfaccia in basso, in una striscia
+  sottile a filo schermo, così il corpo centrale ha più spazio.
 - **Tutte le app** — il tasto in alto a destra apre una griglia a due colonne che occupa
   quasi tutto lo schermo: celle grandi, icona e nome leggibili, ricerca con filtro anche
   sulle lettere accentate. Tocco sull'icona = app a tutto schermo.
@@ -57,7 +57,7 @@ senza passare dal pannello delle impostazioni.
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.5.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.6.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).
