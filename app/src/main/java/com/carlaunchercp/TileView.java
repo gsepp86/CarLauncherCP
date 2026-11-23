@@ -38,19 +38,19 @@ public class TileView extends FrameLayout {
         LinearLayout column = new LinearLayout(context);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);
-        column.setPadding(Ui.dp(context, 6), Ui.dp(context, 5), Ui.dp(context, 6), Ui.dp(context, 5));
+        column.setPadding(Ui.dp(context, 7), Ui.dp(context, 6), Ui.dp(context, 7), Ui.dp(context, 6));
 
         FrameLayout iconBox = new FrameLayout(context);
-        iconBox.setBackground(Ui.shape(Ui.alpha(tint, primary ? 0x38 : 0x22), 19f, context,
-                Ui.alpha(tint, primary ? 0x80 : 0x6E), 1.5f));
+        iconBox.setBackground(Ui.shape(Ui.alpha(tint, primary ? 0x38 : 0x22), 22f, context,
+                Ui.alpha(tint, primary ? 0x80 : 0x6E), 2f));
         iconView = new ImageView(context);
         iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         iconBox.addView(iconView, new FrameLayout.LayoutParams(
-                Ui.dp(context, 38), Ui.dp(context, 38), Gravity.CENTER));
-        int box = Ui.dp(context, 56);
+                Ui.dp(context, 46), Ui.dp(context, 46), Gravity.CENTER));
+        int box = Ui.dp(context, 68);
         column.addView(iconBox, new LinearLayout.LayoutParams(box, box));
 
-        titleView = Ui.text(context, "", 19.5f,
+        titleView = Ui.text(context, "", 22f,
                 primary ? 0xFFFFFFFF : 0xFFF3F6FB, Ui.displayBold(context));
         titleView.setSingleLine(true);
         titleView.setEllipsize(TextUtils.TruncateAt.END);
@@ -60,7 +60,7 @@ public class TileView extends FrameLayout {
         titleLp.topMargin = Ui.dp(context, 5);
         column.addView(titleView, titleLp);
 
-        subtitleView = Ui.text(context, "", 12.5f,
+        subtitleView = Ui.text(context, "", 13.5f,
                 primary ? 0xD9FFFFFF : 0xFF9AA4B4, Ui.medium(context));
         subtitleView.setSingleLine(true);
         subtitleView.setEllipsize(TextUtils.TruncateAt.END);

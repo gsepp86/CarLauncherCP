@@ -32,6 +32,9 @@ si guida.
   stata scelta una viene rilevata automaticamente; la scelta resta memorizzata.
 - **App in evidenza** — fino a 6 scorciatoie scelte da te. Tieni premuta una scorciatoia
   per sostituirla o rimuoverla.
+- **Volume** — sotto le app in evidenza c'è il cursore del volume multimediale: si regola
+  direttamente dalla schermata principale, con la percentuale accanto. Il cursore legge il
+  livello reale dell'autoradio all'apertura e resta allineato al volume di sistema.
 - **Orologio e data** — ora bianca molto grande con accanto la data per esteso, per
   esempio `domenica 22 novembre`, e subito dopo le barre dell'equalizzatore, che si muovono
   **solo mentre qualcosa sta suonando** e restano ferme a volume spento.
@@ -51,10 +54,10 @@ si guida.
   bordi e card, e resta memorizzato.
 - **Lingua** — interfaccia in **italiano** o **inglese**, scelta dal pannello del tema
   (riga `Lingua`). Anche date e dialoghi seguono la lingua scelta.
-- **Tasti quadrati** — cinque tasti di pari dimensioni (Radio, Musica BT, Musica,
-  Telefono, Navigatore) disposti in fila su schermo orizzontale e in griglia su verticale,
-  con icone grandi e ognuna sulla propria placca colorata. Anche le app in evidenza hanno
-  icone più grandi, mentre la loro card è un po' più compatta per lasciare spazio ai tasti.
+- **Tasti principali** — cinque tasti grandi (Radio, Musica BT, Musica, Telefono,
+  Navigatore) disposti in fila su schermo orizzontale e in griglia su verticale, più alti che
+  larghi, con icone grandi e ognuna sulla propria placca colorata. Le app in evidenza hanno
+  celle un po' più raccolte, così i tasti restano la parte più visibile della plancia.
 
 Tieni premuto un tasto (Radio, Musica BT, Musica, Navigatore) per cambiare l'app collegata
 senza passare dal pannello delle impostazioni.
@@ -65,7 +68,7 @@ senza passare dal pannello delle impostazioni.
 
 ## Installazione
 
-1. Scarica `CarLauncherCP-1.7.0.apk` dalla sezione **Releases**.
+1. Scarica `CarLauncherCP-1.8.0.apk` dalla sezione **Releases**.
 2. Copiala sul dispositivo (chiavetta USB, ADB, ecc.) e installala, abilitando
    l'installazione da origini sconosciute se richiesto.
 3. Al primo avvio concede il permesso **Posizione** (serve solo per la velocità GPS).

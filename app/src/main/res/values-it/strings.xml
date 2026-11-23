@@ -35,6 +35,9 @@
     <string name="favorites_title">APP IN EVIDENZA</string>
     <string name="favorites_edit">Modifica</string>
     <string name="favorites_add">Aggiungi</string>
+
+    <string name="volume">Volume</string>
+    <string name="volume_percent">%1$d%%</string>
     <string name="add_favorite_title">Aggiungi app in evidenza</string>
     <string name="replace_app">Sostituisci app</string>
     <string name="remove_favorite">Rimuovi dalla home</string>

@@ -35,6 +35,9 @@
     <string name="favorites_title">FAVOURITES</string>
     <string name="favorites_edit">Edit</string>
     <string name="favorites_add">Add</string>
+
+    <string name="volume">Volume</string>
+    <string name="volume_percent">%1$d%%</string>
     <string name="add_favorite_title">Add favourite</string>
     <string name="replace_app">Replace app</string>
     <string name="remove_favorite">Remove from home</string>

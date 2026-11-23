@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -24,6 +25,7 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -61,6 +63,8 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
     private TileView music2Tile;
     private TileView navTile;
     private AudioManager audioManager;
+    private SeekBar volumeBar;
+    private TextView volumeValue;
     private LinearLayout canRow;
     private CanBusReader canBus;
 
@@ -113,6 +117,7 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         clockTick.run();
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioTick.run();
+        refreshVolume();
         canBus.start();
         applyImmersive();
     }
@@ -228,14 +233,15 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         updateGpsChip();
     }
 
-    /** Side of a square tile: a touch smaller than before, to leave room for the lower motion strip. */
+    /** Height of a shortcut tile: taller than it is wide, so the five keys dominate the panel. */
     private int tileCellSize(boolean landscape) {
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int gap = Ui.dp(this, landscape ? 12 : 10);
         if (landscape) {
             int rightWidth = Math.round((screenWidth - Ui.dp(this, 44) - Ui.dp(this, 18)) * 0.68f);
-            int cell = (rightWidth - gap * 4) / 5;
-            return Math.max(Ui.dp(this, 112), Math.min(cell, Ui.dp(this, 164)));
+            int width = (rightWidth - gap * 4) / 5;
+            int cell = Math.round(width * 1.34f);
+            return Math.max(Ui.dp(this, 132), Math.min(cell, Ui.dp(this, 196)));
         }
         int cell = (screenWidth - Ui.dp(this, 44) - gap) / 2;
         return Math.max(Ui.dp(this, 110), cell);
@@ -605,15 +611,84 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
 
         card.addView(head);
 
-                    favoritesGrid = new GridLayout(this);
-            favoritesGrid.setColumnCount(landscape ? 3 : 5);
-            LinearLayout.LayoutParams gridLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
-                    landscape ? 1f : 0f);
-            gridLp.topMargin = Ui.dp(this, 6);
-            card.addView(favoritesGrid, gridLp);
+        favoritesGrid = new GridLayout(this);
+        favoritesGrid.setColumnCount(landscape ? 3 : 6);
+        LinearLayout.LayoutParams gridLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                landscape ? 0 : ViewGroup.LayoutParams.WRAP_CONTENT,
+                landscape ? 1f : 0f);
+        gridLp.topMargin = Ui.dp(this, 4);
+        card.addView(favoritesGrid, gridLp);
+
+        // Music volume, right under the highlighted apps, so the cabin level is one touch away.
+        LinearLayout.LayoutParams volumeLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        volumeLp.topMargin = Ui.dp(this, 4);
+        card.addView(buildVolumeRow(), volumeLp);
         return card;
+    }
+
+    /** Speaker glyph, slider and percentage for the media stream. */
+    private View buildVolumeRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, Ui.dp(this, 2), 0, 0);
+
+        row.addView(Ui.icon(this, R.drawable.ic_volume, 22f, theme.withAlpha(0xC7)),
+                new LinearLayout.LayoutParams(Ui.dp(this, 22), Ui.dp(this, 22)));
+
+        volumeBar = new SeekBar(this);
+        volumeBar.setMax(1);
+        volumeBar.setProgress(0);
+        volumeBar.setProgressTintList(ColorStateList.valueOf(theme.accent));
+        volumeBar.setProgressBackgroundTintList(ColorStateList.valueOf(0x3DFFFFFF));
+        volumeBar.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+        volumeBar.setContentDescription(getString(R.string.volume));
+        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(0, Ui.dp(this, 42), 1f);
+        barLp.leftMargin = Ui.dp(this, 8);
+        barLp.rightMargin = Ui.dp(this, 4);
+        row.addView(volumeBar, barLp);
+
+        volumeValue = Ui.text(this, "--", 17f, 0xFFDCE3EE, Ui.displayBold(this));
+        volumeValue.setGravity(Gravity.END);
+        volumeValue.setMinWidth(Ui.dp(this, 46));
+        row.addView(volumeValue);
+
+        volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) applyVolume(progress);
+                volumeValue.setText(getString(R.string.volume_percent,
+                        Math.round(progress * 100f / Math.max(1, seekBar.getMax()))));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        return row;
+    }
+
+    /** Reads the current media level into the slider, without pushing it back to the system. */
+    private void refreshVolume() {
+        if (volumeBar == null) return;
+        AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (manager == null) return;
+        int max = Math.max(1, manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+        int level = Math.max(0, Math.min(max, manager.getStreamVolume(AudioManager.STREAM_MUSIC)));
+        volumeBar.setMax(max);
+        volumeBar.setProgress(level);
+    }
+
+    private void applyVolume(int level) {
+        AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (manager == null) return;
+        manager.setStreamVolume(AudioManager.STREAM_MUSIC, level, 0);
     }
 
     // ------------------------------------------------------------- favourites
@@ -656,8 +731,8 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         LinearLayout cell = new LinearLayout(this);
         cell.setOrientation(LinearLayout.HORIZONTAL);
         cell.setGravity(Gravity.CENTER_VERTICAL);
-        cell.setPadding(Ui.dp(this, 12), 0, Ui.dp(this, 12), 0);
-        cell.setBackground(Ui.card(this, 0x14FFFFFF, 0x0CFFFFFF, 16f, theme.withAlpha(0x59), 1.5f,
+        cell.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 10), 0);
+        cell.setBackground(Ui.card(this, 0x14FFFFFF, 0x0CFFFFFF, 14f, theme.withAlpha(0x59), 1.5f,
                 theme.withAlpha(0x22)));
 
         ImageView icon = new ImageView(this);
@@ -668,9 +743,9 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         } catch (Exception e) {
             icon.setImageResource(R.drawable.ic_apps_grid);
         }
-        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 42), Ui.dp(this, 42)));
+        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 34), Ui.dp(this, 34)));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 20f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 18f,
                 0xFFDCE3EE, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -695,9 +770,9 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        int boxSize = Ui.dp(this, 74);
+        int boxSize = Ui.dp(this, 64);
         FrameLayout box = new FrameLayout(this);
-        box.setBackground(Ui.shape(theme.withAlpha(0x22), 18f, this, theme.withAlpha(0x66), 1.5f));
+        box.setBackground(Ui.shape(theme.withAlpha(0x22), 16f, this, theme.withAlpha(0x66), 1.5f));
         ImageView icon = new ImageView(this);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         try {
@@ -705,10 +780,10 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         } catch (Exception e) {
             icon.setImageResource(R.drawable.ic_apps_grid);
         }
-        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 48), Ui.dp(this, 48), Gravity.CENTER));
+        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 40), Ui.dp(this, 40), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 15.5f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 14f,
                 0xFFAEB6C4, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -734,12 +809,12 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
             LinearLayout cell = new LinearLayout(this);
             cell.setOrientation(LinearLayout.HORIZONTAL);
             cell.setGravity(Gravity.CENTER_VERTICAL);
-            cell.setPadding(Ui.dp(this, 12), 0, Ui.dp(this, 12), 0);
-            cell.setBackground(Ui.card(this, theme.withAlpha(0x1A), theme.withAlpha(0x0F), 16f,
+            cell.setPadding(Ui.dp(this, 10), 0, Ui.dp(this, 10), 0);
+            cell.setBackground(Ui.card(this, theme.withAlpha(0x1A), theme.withAlpha(0x0F), 14f,
                     theme.withAlpha(0x4D), theme.withAlpha(0x30)));
-            cell.addView(Ui.icon(this, R.drawable.ic_add, 26f, theme.accent),
-                    new LinearLayout.LayoutParams(Ui.dp(this, 26), Ui.dp(this, 26)));
-            TextView label = Ui.text(this, add, 19f, theme.withAlpha(0xE6), Ui.medium(this));
+            cell.addView(Ui.icon(this, R.drawable.ic_add, 22f, theme.accent),
+                    new LinearLayout.LayoutParams(Ui.dp(this, 22), Ui.dp(this, 22)));
+            TextView label = Ui.text(this, add, 17.5f, theme.withAlpha(0xE6), Ui.medium(this));
             LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             labelLp.leftMargin = Ui.dp(this, 12);
@@ -754,14 +829,14 @@ public class MainActivity extends Activity implements Speedometer.Listener, CanB
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        int boxSize = Ui.dp(this, 64);
+        int boxSize = Ui.dp(this, 56);
         FrameLayout box = new FrameLayout(this);
-        box.setBackground(Ui.shape(theme.withAlpha(0x1A), 16f, this, theme.withAlpha(0x59), 1f));
-        box.addView(Ui.icon(this, R.drawable.ic_add, 28f, theme.accent),
-                new FrameLayout.LayoutParams(Ui.dp(this, 28), Ui.dp(this, 28), Gravity.CENTER));
+        box.setBackground(Ui.shape(theme.withAlpha(0x1A), 14f, this, theme.withAlpha(0x59), 1f));
+        box.addView(Ui.icon(this, R.drawable.ic_add, 24f, theme.accent),
+                new FrameLayout.LayoutParams(Ui.dp(this, 24), Ui.dp(this, 24), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
-        TextView label = Ui.text(this, add, 14.5f, theme.withAlpha(0xCC), Ui.medium(this));
+        TextView label = Ui.text(this, add, 13.5f, theme.withAlpha(0xCC), Ui.medium(this));
         label.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams labelLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
