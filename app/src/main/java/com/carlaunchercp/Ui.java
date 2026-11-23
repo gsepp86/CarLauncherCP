@@ -94,10 +94,16 @@ public final class Ui {
     }
 
     public static Drawable card(Context c, int top, int bottom, float radiusDp, int strokeColor, int rippleColor) {
+        return card(c, top, bottom, radiusDp, strokeColor, 1f, rippleColor);
+    }
+
+    /** Same card with an explicit outline width, for keys that must read over a busy backdrop. */
+    public static Drawable card(Context c, int top, int bottom, float radiusDp, int strokeColor,
+                                float strokeWidthDp, int rippleColor) {
         GradientDrawable content = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM, new int[]{top, bottom});
         content.setCornerRadius(dp(c, radiusDp));
-        content.setStroke(dp(c, 1f), strokeColor);
+        content.setStroke(Math.max(1, dp(c, strokeWidthDp)), strokeColor);
         if (rippleColor == 0) return content;
 
         GradientDrawable mask = new GradientDrawable();

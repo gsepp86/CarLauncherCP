@@ -20,6 +20,13 @@
     <string name="gps_off">GPS OFF</string>
     <string name="gps_search">LOOKING FOR GPS</string>
 
+    <string name="can_trip">TRIP</string>
+    <string name="can_total">ODOMETER</string>
+    <string name="can_petrol">PETROL</string>
+    <string name="can_methane">METHANE</string>
+    <string name="can_km">%1$s km</string>
+    <string name="can_liters">%1$s L</string>
+
     <string name="media_previous">Previous track</string>
     <string name="media_play">Play</string>
     <string name="media_pause">Pause</string>

@@ -140,22 +140,22 @@
   .tbtn {
     width: 44px; height: 44px; border-radius: 50%; padding: 0; cursor: pointer;
     display: grid; place-items: center; color: #fff;
-    border: 1px solid rgba(255,255,255,.10);
-    background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+    border: 2px solid rgba(255,255,255,.30);
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08));
     transition: transform .12s ease, border-color .2s ease;
   }
   .tbtn:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .tbtn:active { transform: scale(.94); }
   .tbtn svg { width: 22px; height: 22px; }
   .tbtn.main {
-    width: 52px; height: 52px; border-color: rgba(255,255,255,.25);
+    width: 52px; height: 52px; border: 2px solid rgba(255,255,255,.72);
     background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white), color-mix(in srgb, var(--accent) 88%, black));
     box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--accent) 90%, transparent);
   }
   .tbtn.main svg { width: 24px; height: 24px; }
 
   /* ---------------- body ---------------- */
-  main { flex: 1; display: grid; grid-template-columns: .36fr .64fr; gap: 18px; min-height: 0; }
+  main { flex: 1; display: grid; grid-template-columns: .32fr .68fr; gap: 18px; min-height: 0; }
 
   .card {
     border-radius: 26px; border: 1px solid rgba(255,255,255,.10);
@@ -168,6 +168,12 @@
   .max { font-size: 15px; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
   .card-head { display: flex; align-items: center; justify-content: space-between; }
   .gauge-wrap { flex: 1; display: grid; place-items: center; min-height: 0; position: relative; }
+
+  /* distance and fuel read from the car bus, under the speed readout */
+  .can-row { display: flex; gap: 8px; margin: 2px 0 8px; }
+  .can-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .can-col .k { font-size: 10.5px; letter-spacing: 1.4px; color: #9AA4B4; font-weight: 600; }
+  .can-col .v { font-size: 17px; font-weight: 700; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .gauge { width: 100%; height: 100%; max-width: 300px; max-height: 300px; overflow: visible; }
   .gauge .track { fill: none; stroke: rgba(255,255,255,.085); stroke-width: 13; stroke-linecap: round; }
   .gauge .progress {
@@ -190,8 +196,8 @@
 
   .tile {
     position: relative;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    padding: 7px 6px; aspect-ratio: 1 / 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    padding: 5px 6px; aspect-ratio: 1 / 1;
     border-radius: 22px; border: 1px solid var(--line);
     background: linear-gradient(180deg, #161B23, #10141A);
     cursor: pointer; transition: transform .14s ease, border-color .2s, box-shadow .25s;
@@ -200,50 +206,54 @@
   .tile:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 40%, transparent); box-shadow: 0 12px 30px -18px color-mix(in srgb, var(--accent) 80%, transparent); }
   .tile:active { transform: scale(.985); }
   .tile .icon-box {
-    width: 46px; height: 46px; border-radius: 16px; flex: 0 0 46px;
+    width: 56px; height: 56px; border-radius: 19px; flex: 0 0 56px;
     display: grid; place-items: center;
-    background: #1A2029; border: 1px solid rgba(255,255,255,.12);
+    background: #1A2029; border: 1.5px solid rgba(255,255,255,.14);
   }
-  .tile .icon-box svg { width: 30px; height: 30px; }
+  .tile .icon-box svg { width: 38px; height: 38px; }
   .tile .copy { min-width: 0; width: 100%; text-align: center; }
-  .tile .title { font-size: 18.5px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .title { font-size: 19.5px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tile .sub { font-size: 12.5px; color: #9AA4B4; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .hdr-eq { display: flex; align-items: flex-end; gap: 3px; height: 26px; width: 32px; margin-left: 14px; }
-  .hdr-eq i { width: 5px; height: 100%; border-radius: 3px; background: var(--accent); transform-origin: bottom; animation: eq 1.05s ease-in-out infinite; }
-  .hdr-eq i:nth-child(1) { animation-delay: -.15s; }
-  .hdr-eq i:nth-child(2) { animation-delay: -.45s; }
-  .hdr-eq i:nth-child(3) { animation-delay: -.75s; }
-  .hdr-eq i:nth-child(4) { animation-delay: -.35s; }
-  @keyframes eq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+  /* level bars: still until something is playing (here: nothing is) */
+  .hdr-eq { display: flex; align-items: flex-end; gap: 3px; height: 32px; width: 38px; margin-left: 14px; }
+  .hdr-eq i { width: 6px; height: 100%; border-radius: 3px; background: var(--accent); transform-origin: bottom; opacity: .45; transform: scaleY(var(--lvl, .4)); }
+  .hdr-eq i:nth-child(1) { --lvl: .34; }
+  .hdr-eq i:nth-child(2) { --lvl: .52; }
+  .hdr-eq i:nth-child(3) { --lvl: .43; }
+  .hdr-eq i:nth-child(4) { --lvl: .64; }
 
   .tile.primary {
     background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 94%, white), color-mix(in srgb, var(--accent) 76%, black));
     border-color: rgba(255,255,255,.25);
     box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--accent) 95%, transparent);
   }
-  .tile.primary .icon-box { background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.24); }
+  .tile.primary .icon-box { background: rgba(255,176,32,.26); border-color: rgba(255,176,32,.58); }
   .tile.primary .sub { color: rgba(255,255,255,.8); }
+  .tile.bt .icon-box { background: rgba(47,143,255,.16); border-color: rgba(47,143,255,.5); }
+  .tile.music .icon-box { background: rgba(176,123,255,.16); border-color: rgba(176,123,255,.5); }
+  .tile.phone .icon-box { background: rgba(46,204,113,.16); border-color: rgba(46,204,113,.5); }
+  .tile.nav .icon-box { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: color-mix(in srgb, var(--accent) 52%, transparent); }
 
-  .fav { flex: 1; padding: 16px 16px 12px; display: flex; flex-direction: column; min-height: 0; }
+  .fav { flex: 1; padding: 14px 14px 10px; display: flex; flex-direction: column; min-height: 0; }
   .fav-head { display: flex; align-items: center; justify-content: space-between; }
   .fav-head .edit { font-size: 18px; color: var(--accent); cursor: pointer; padding: 2px 6px; border-radius: 8px; }
   .fav-head .edit:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-  .fav-row { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 6px; min-height: 0; margin-top: 6px; }
+  .fav-row { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 6px; min-height: 0; margin-top: 4px; }
   .fav-cell {
     display: flex; flex-direction: row; align-items: center; gap: 12px; cursor: pointer; min-width: 0;
     padding: 0 12px; border-radius: 16px;
-    background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.09);
+    background: rgba(255,255,255,.08); border: 1.5px solid color-mix(in srgb, var(--accent) 34%, transparent);
     transition: transform .14s ease, border-color .2s;
   }
   .fav-cell:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .fav-cell:hover .fav-box { transform: translateY(-2px); }
-  .fav-box { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 34px; }
-  .fav-box svg { width: 34px; height: 34px; }
+  .fav-box { width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px; }
+  .fav-box svg { width: 42px; height: 42px; }
   .fav-box.add { width: 26px; height: 26px; flex: 0 0 26px; }
   .fav-box.add svg { color: var(--accent); }
   .fav-cell.add { background: color-mix(in srgb, var(--accent) 13%, transparent); border-color: color-mix(in srgb, var(--accent) 42%, transparent); }
-  .fav-name { font-size: 19px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fav-name { font-size: 20px; color: #DCE3EE; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fav-name.accent { color: color-mix(in srgb, var(--accent) 80%, white); }
 
   /* ---------------- all apps ---------------- */
@@ -402,6 +412,11 @@
           <div class="unit">KM/H</div>
         </div>
       </div>
+      <div class="can-row">
+        <div class="can-col"><span class="k">TRAGITTO</span><span class="v">12.480 km</span></div>
+        <div class="can-col"><span class="k">BENZINA</span><span class="v">62%</span></div>
+        <div class="can-col"><span class="k">METANO</span><span class="v">38%</span></div>
+      </div>
     </section>
 
     <div class="right">
@@ -419,28 +434,28 @@
           <div class="copy"><div class="title">Radio FM</div><div class="sub">Ascolta la radio</div></div>
         </div>
 
-        <div class="tile">
+        <div class="tile bt">
           <span class="icon-box">
             <svg viewBox="0 0 24 24"><path fill="#2196F3" d="M17.71,7.71L12,2h-1v7.59L6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 11,14.41V22h1l5.71,-5.71 -4.3,-4.29 4.3,-4.29zM13,5.83l1.88,1.88L13,9.59V5.83zM14.88,16.29L13,18.17v-3.76l1.88,1.88z"/></svg>
           </span>
           <div class="copy"><div class="title">Musica BT</div><div class="sub">Riproduci via Bluetooth</div></div>
         </div>
 
-        <div class="tile">
+        <div class="tile music">
           <span class="icon-box">
             <svg viewBox="0 0 24 24"><path fill="#B388FF" d="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/></svg>
           </span>
           <div class="copy"><div class="title">Musica</div><div class="sub">Riproduci dalla memoria</div></div>
         </div>
 
-        <div class="tile">
+        <div class="tile phone">
           <span class="icon-box">
             <svg viewBox="0 0 24 24"><path fill="#34C759" d="M6.62,10.79c1.44,2.83 3.76,5.14 6.59,6.59l2.2,-2.2c0.27,-0.27 0.67,-0.36 1.02,-0.24 1.12,0.37 2.33,0.57 3.57,0.57 0.55,0 1,0.45 1,1V20c0,0.55 -0.45,1 -1,1 -9.39,0 -17,-7.61 -17,-17 0,-0.55 0.45,-1 1,-1h3.5c0.55,0 1,0.45 1,1 0,1.25 0.2,2.45 0.57,3.57 0.11,0.35 0.03,0.74 -0.25,1.02l-2.2,2.2z"/></svg>
           </span>
           <div class="copy"><div class="title">Telefono</div><div class="sub">Chiama in vivavoce</div></div>
         </div>
 
-        <div class="tile">
+        <div class="tile nav">
           <span class="icon-box">
             <svg viewBox="0 0 24 24">
               <path fill="#3D9BFF" d="M12,2L4.5,20.29l0.71,0.71L12,18l6.79,3 0.71,-0.71z"/>

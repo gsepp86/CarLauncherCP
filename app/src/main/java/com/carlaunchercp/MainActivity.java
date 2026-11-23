@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,13 +25,20 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 /** Car-optimised home screen: speed, radio, two music shortcuts, phone, navigation and favourites. */
-public class MainActivity extends Activity implements Speedometer.Listener {
+public class MainActivity extends Activity implements Speedometer.Listener, CanBusReader.Listener {
+
+    /** Icon plates: each shortcut keeps its own colour so the row reads at a glance. */
+    private static final int TILE_RADIO = 0xFFFFB020;
+    private static final int TILE_BT = 0xFF2F8FFF;
+    private static final int TILE_MUSIC = 0xFFB07BFF;
+    private static final int TILE_PHONE = 0xFF2ECC71;
 
     private Prefs prefs;
     private ThemePalette theme;
@@ -52,6 +60,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private TileView musicTile;
     private TileView music2Tile;
     private TileView navTile;
+    private AudioManager audioManager;
+    private LinearLayout canRow;
+    private CanBusReader canBus;
 
     private float maxSpeed = 0f;
     private boolean hasFix = false;
@@ -63,6 +74,16 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         public void run() {
             updateClock();
             clockHandler.postDelayed(this, 10_000L);
+        }
+    };
+
+    /** Level bars only dance while something is actually playing. */
+    private final Runnable audioTick = new Runnable() {
+        @Override
+        public void run() {
+            boolean playing = audioManager != null && audioManager.isMusicActive();
+            if (clockBars != null) clockBars.setRunning(playing);
+            clockHandler.postDelayed(this, 1_500L);
         }
     };
 
@@ -79,6 +100,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         buildUi();
         speedometer = new Speedometer(this, this);
+        canBus = new CanBusReader(this, this);
     }
 
     @Override
@@ -89,6 +111,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         refreshTileSubtitles();
         updateGpsChip();
         clockTick.run();
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioTick.run();
+        canBus.start();
         applyImmersive();
     }
 
@@ -97,6 +122,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         super.onPause();
         speedometer.stop();
         clockHandler.removeCallbacks(clockTick);
+        clockHandler.removeCallbacks(audioTick);
+        if (clockBars != null) clockBars.setRunning(false);
+        canBus.stop();
     }
 
     @Override
@@ -147,7 +175,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         body.setOrientation(landscape ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
 
         LinearLayout.LayoutParams speedLp = landscape
-                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.36f)
+                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.32f)
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Ui.dp(this, 240));
         body.addView(buildSpeedCard(), speedLp);
 
@@ -165,7 +193,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         right.addView(buildFavoritesCard(landscape), favoritesLp);
 
         LinearLayout.LayoutParams rightLp = landscape
-                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.64f)
+                ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.68f)
                 : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         if (landscape) rightLp.leftMargin = Ui.dp(this, 18);
@@ -205,9 +233,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         int gap = Ui.dp(this, landscape ? 12 : 10);
         if (landscape) {
-            int rightWidth = Math.round((screenWidth - Ui.dp(this, 44) - Ui.dp(this, 18)) * 0.64f);
+            int rightWidth = Math.round((screenWidth - Ui.dp(this, 44) - Ui.dp(this, 18)) * 0.68f);
             int cell = (rightWidth - gap * 4) / 5;
-            return Math.max(Ui.dp(this, 100), Math.min(cell, Ui.dp(this, 150)));
+            return Math.max(Ui.dp(this, 112), Math.min(cell, Ui.dp(this, 164)));
         }
         int cell = (screenWidth - Ui.dp(this, 44) - gap) / 2;
         return Math.max(Ui.dp(this, 110), cell);
@@ -228,7 +256,7 @@ public class MainActivity extends Activity implements Speedometer.Listener {
 
         clockBars = new EqualizerBarsView(this);
         clockBars.setAccent(theme.accent);
-        clockBars.setRunning(true);
+        clockBars.setRunning(false);
         LinearLayout.LayoutParams barsLp = new LinearLayout.LayoutParams(
                 Ui.dp(this, 38), Ui.dp(this, 32));
         barsLp.leftMargin = Ui.dp(this, 14);
@@ -383,8 +411,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         FrameLayout box = new FrameLayout(this);
         box.setBackground(primary
                 ? Ui.card(this, Ui.mix(theme.accent, 0xFFFFFFFF, 0.22f), Ui.darken(theme.accent, 0.12f),
-                999f, 0x40FFFFFF, theme.withAlpha(0x66))
-                : Ui.card(this, 0x16FFFFFF, 0x0AFFFFFF, 999f, 0x1AFFFFFF, theme.withAlpha(0x40)));
+                999f, 0xF2FFFFFF, 2f, theme.withAlpha(0x66))
+                : Ui.card(this, 0x22FFFFFF, 0x14FFFFFF, 999f, 0x7DFFFFFF, 2f, theme.withAlpha(0x40)));
         ImageView icon = Ui.icon(this, iconRes, primary ? 26f : 22f, 0xFFFFFFFF);
         int iconSize = Ui.dp(this, primary ? 26 : 22);
         box.addView(icon, new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER));
@@ -460,25 +488,38 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         gauge.setTheme(theme);
         card.addView(gauge, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        // Distance and fuel from the car bus, right under the speed readout.
+        canRow = new LinearLayout(this);
+        canRow.setOrientation(LinearLayout.HORIZONTAL);
+        canRow.setVisibility(View.GONE);
+        LinearLayout.LayoutParams canLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        canLp.topMargin = Ui.dp(this, 2);
+        canLp.bottomMargin = Ui.dp(this, 8);
+        card.addView(canRow, canLp);
         return card;
     }
 
     private View buildTiles(boolean landscape, int cell) {
-        radioTile = makeTile(R.drawable.ic_radio, R.string.tile_radio, radioSubtitle(), true);
+        radioTile = makeTile(R.drawable.ic_radio, R.string.tile_radio, radioSubtitle(), true,
+                TILE_RADIO);
         radioTile.setOnClickListener(v -> openRadio());
         radioTile.setOnLongClickListener(v -> {
             chooseRadioApp();
             return true;
         });
 
-        musicTile = makeTile(R.drawable.ic_bluetooth, R.string.tile_music, musicSubtitle(), false);
+        musicTile = makeTile(R.drawable.ic_bluetooth, R.string.tile_music, musicSubtitle(), false,
+                TILE_BT);
         musicTile.setOnClickListener(v -> openMusic());
         musicTile.setOnLongClickListener(v -> {
             chooseMusicApp();
             return true;
         });
 
-        music2Tile = makeTile(R.drawable.ic_music, R.string.tile_music_2, music2Subtitle(), false);
+        music2Tile = makeTile(R.drawable.ic_music, R.string.tile_music_2, music2Subtitle(), false,
+                TILE_MUSIC);
         music2Tile.setOnClickListener(v -> openMusic2());
         music2Tile.setOnLongClickListener(v -> {
             chooseMusic2App();
@@ -486,10 +527,11 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         });
 
         TileView phoneTile = makeTile(R.drawable.ic_phone, R.string.tile_phone,
-                getString(R.string.tile_phone_sub), false);
+                getString(R.string.tile_phone_sub), false, TILE_PHONE);
         phoneTile.setOnClickListener(v -> LauncherActions.openDialer(this));
 
-        navTile = makeTile(R.drawable.ic_navigation, R.string.tile_nav, navSubtitle(), false);
+        navTile = makeTile(R.drawable.ic_navigation, R.string.tile_nav, navSubtitle(), false,
+                theme.accent);
         navTile.setOnClickListener(v -> openNavigation());
         navTile.setOnLongClickListener(v -> {
             chooseNavApp();
@@ -516,8 +558,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         return stack;
     }
 
-    private TileView makeTile(int iconRes, int titleRes, CharSequence subtitle, boolean primary) {
-        TileView tile = new TileView(this, theme, primary);
+    private TileView makeTile(int iconRes, int titleRes, CharSequence subtitle, boolean primary,
+                              int accentColor) {
+        TileView tile = new TileView(this, theme, primary, accentColor);
         tile.setData(iconRes, getString(titleRes), subtitle);
         return tile;
     }
@@ -539,8 +582,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
     private View buildFavoritesCard(boolean landscape) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        int pad = Ui.dp(this, 16);
-        card.setPadding(pad, pad, pad, Ui.dp(this, 12));
+        int pad = Ui.dp(this, 14);
+        card.setPadding(pad, pad, pad, Ui.dp(this, 10));
         card.setBackground(Ui.card(this, 0xFF12161D, 0xFF0C0F14, 26f, 0x17FFFFFF, 0));
 
         LinearLayout head = new LinearLayout(this);
@@ -614,8 +657,8 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         cell.setOrientation(LinearLayout.HORIZONTAL);
         cell.setGravity(Gravity.CENTER_VERTICAL);
         cell.setPadding(Ui.dp(this, 12), 0, Ui.dp(this, 12), 0);
-        cell.setBackground(Ui.card(this, 0x0FFFFFFF, 0x08FFFFFF, 16f, 0x16FFFFFF,
-                theme.withAlpha(0x2A)));
+        cell.setBackground(Ui.card(this, 0x14FFFFFF, 0x0CFFFFFF, 16f, theme.withAlpha(0x59), 1.5f,
+                theme.withAlpha(0x22)));
 
         ImageView icon = new ImageView(this);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -625,9 +668,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         } catch (Exception e) {
             icon.setImageResource(R.drawable.ic_apps_grid);
         }
-        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 34), Ui.dp(this, 34)));
+        cell.addView(icon, new LinearLayout.LayoutParams(Ui.dp(this, 42), Ui.dp(this, 42)));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 19f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 20f,
                 0xFFDCE3EE, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -652,9 +695,9 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(Gravity.CENTER_HORIZONTAL);
 
-        int boxSize = Ui.dp(this, 64);
+        int boxSize = Ui.dp(this, 74);
         FrameLayout box = new FrameLayout(this);
-        box.setBackground(Ui.shape(0x12FFFFFF, 16f, this, 0x1AFFFFFF, 1f));
+        box.setBackground(Ui.shape(theme.withAlpha(0x22), 18f, this, theme.withAlpha(0x66), 1.5f));
         ImageView icon = new ImageView(this);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         try {
@@ -662,10 +705,10 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         } catch (Exception e) {
             icon.setImageResource(R.drawable.ic_apps_grid);
         }
-        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 38), Ui.dp(this, 38), Gravity.CENTER));
+        box.addView(icon, new FrameLayout.LayoutParams(Ui.dp(this, 48), Ui.dp(this, 48), Gravity.CENTER));
         cell.addView(box, new LinearLayout.LayoutParams(boxSize, boxSize));
 
-        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 14.5f,
+        TextView label = Ui.text(this, LauncherActions.appLabel(this, flattened), 15.5f,
                 0xFFAEB6C4, Ui.medium(this));
         label.setSingleLine(true);
         label.setEllipsize(TextUtils.TruncateAt.END);
@@ -924,6 +967,70 @@ public class MainActivity extends Activity implements Speedometer.Listener {
         gauge.setDimmed(!granted);
         updateGpsChip();
         if (granted) speedometer.start();
+    }
+
+    // ----------------------------------------------------------------- CAN / OBD
+
+    @Override
+    public void onCanData(CanBusReader.Data data) {
+        runOnUiThread(() -> showCanData(data));
+    }
+
+    /** Distance and fuel under the speed gauge; hidden when the unit reports nothing. */
+    private void showCanData(CanBusReader.Data data) {
+        if (canRow == null) return;
+        canRow.removeAllViews();
+        if (data == null || data.isEmpty()) {
+            canRow.setVisibility(View.GONE);
+            return;
+        }
+        Locale locale = getResources().getConfiguration().getLocales().get(0);
+        NumberFormat numbers = NumberFormat.getIntegerInstance(locale);
+
+        if (data.tripKm != null || data.totalKm != null) {
+            boolean trip = data.tripKm != null;
+            float km = trip ? data.tripKm : data.totalKm;
+            canRow.addView(canColumn(getString(trip ? R.string.can_trip : R.string.can_total),
+                    getString(R.string.can_km, numbers.format(Math.round(km)))), canColumnParams());
+        }
+        if (data.petrolPercent != null || data.petrolLiters != null) {
+            canRow.addView(canColumn(getString(R.string.can_petrol),
+                    canAmount(data.petrolPercent, data.petrolLiters, numbers)), canColumnParams());
+        }
+        if (data.methanePercent != null || data.methaneLiters != null) {
+            canRow.addView(canColumn(getString(R.string.can_methane),
+                    canAmount(data.methanePercent, data.methaneLiters, numbers)), canColumnParams());
+        }
+        canRow.setVisibility(View.VISIBLE);
+    }
+
+    private String canAmount(Float percent, Float liters, NumberFormat numbers) {
+        if (percent != null) return Math.round(percent) + "%";
+        if (liters != null) return getString(R.string.can_liters, numbers.format(Math.round(liters)));
+        return "--";
+    }
+
+    private LinearLayout canColumn(String label, String value) {
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+
+        TextView head = Ui.text(this, label, 10.5f, 0xFF9AA4B4, Ui.displayBold(this));
+        head.setLetterSpacing(0.14f);
+        head.setSingleLine(true);
+        column.addView(head);
+
+        TextView reading = Ui.text(this, value, 17f, 0xFFFFFFFF, Ui.displayBold(this));
+        reading.setSingleLine(true);
+        reading.setEllipsize(TextUtils.TruncateAt.END);
+        column.addView(reading);
+        return column;
+    }
+
+    private LinearLayout.LayoutParams canColumnParams() {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp.rightMargin = Ui.dp(this, 8);
+        return lp;
     }
 
     // -------------------------------------------------------------------- clock
